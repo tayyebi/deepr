@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  deepr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deepr-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=deepr-db;Database=deepr;Username=postgres;Password=postgres
+    depends_on:
+      deepr-db:
+        condition: service_healthy
+    networks:
+      - deepr-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  deepr-db:
+    image: postgres:16-alpine
+    container_name: deepr-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=deepr
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - deepr-db-data:/var/lib/postgresql/data
+    networks:
+      - deepr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  deepr-db-data:
+    driver: local
+
+networks:
+  deepr-network:
+    driver: bridge

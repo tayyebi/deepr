@@ -145,13 +145,13 @@
 - [ ] API documentation (Swagger enhanced)
 - [ ] Architecture decision records (ADR)
 - [ ] Development setup guide
-- [ ] Deployment guide
+- [x] Deployment guide (DEPLOYMENT.md)
 
 #### 6.2 DevOps
-- [ ] Docker containerization
-- [ ] Docker Compose for local dev
-- [ ] CI/CD pipeline
-- [ ] Environment configuration
+- [x] Docker containerization (Dockerfile, .dockerignore)
+- [x] Docker Compose for local dev (docker-compose.yml)
+- [x] CI/CD pipeline (GitHub Actions with SSH deployment)
+- [x] Environment configuration (appsettings, Docker environment variables)
 
 ## Notes
 
