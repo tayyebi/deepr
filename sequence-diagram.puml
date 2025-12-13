@@ -1,0 +1,203 @@
+@startuml Deepr Session Orchestration Sequence
+
+!define ACTOR participant
+!define COMPONENT participant
+!define DATABASE participant
+
+ACTOR "User" as User
+COMPONENT "API Controller" as API
+COMPONENT "SessionOrchestrator" as Orchestrator
+COMPONENT "DecisionMethod\n(IDecisionMethod)" as Method
+COMPONENT "ToolAdapter\n(IToolAdapter)" as Tool
+COMPONENT "AgentDriver\n(IAgentDriver)" as Driver
+DATABASE "Repository\n(IRepository<T>)" as Repo
+DATABASE "ApplicationDbContext" as DB
+
+title Session Orchestration Flow - Executing a Decision-Making Round
+
+== Session Initialization ==
+
+User -> API: POST /sessions/start\n{councilId, issueId}
+activate API
+
+API -> Orchestrator: StartSessionAsync(council, issue)
+activate Orchestrator
+
+Orchestrator -> Method: ValidateCouncilAsync(council)
+activate Method
+Method --> Orchestrator: true
+deactivate Method
+
+Orchestrator -> Method: InitializeStateAsync(council, issue)
+activate Method
+Method --> Orchestrator: initialStatePayload (JSON)
+deactivate Method
+
+Orchestrator -> Repo: AddAsync(session)
+activate Repo
+Repo -> DB: INSERT INTO Sessions
+activate DB
+DB --> Repo: session
+deactivate DB
+Repo --> Orchestrator: session
+deactivate Repo
+
+Orchestrator --> API: session
+deactivate Orchestrator
+
+API --> User: 200 OK {sessionId, status}
+deactivate API
+
+== Round Execution ==
+
+User -> API: POST /sessions/{id}/execute-round
+activate API
+
+API -> Orchestrator: ExecuteNextRoundAsync(session, council)
+activate Orchestrator
+
+Orchestrator -> Method: GetNextPromptAsync(session)
+activate Method
+Method -> Method: Analyze session history\nand state payload
+Method --> Orchestrator: NextPromptResult\n{promptText, isComplete}
+deactivate Method
+
+alt Session is not complete
+
+  Orchestrator -> Tool: GeneratePromptTemplateAsync()
+  activate Tool
+  Tool --> Orchestrator: promptTemplate
+  deactivate Tool
+
+  Orchestrator -> Orchestrator: Merge prompt with template
+
+  loop For each agent in council
+    
+    Orchestrator -> Driver: IsAgentAvailableAsync(agentId)
+    activate Driver
+    Driver --> Orchestrator: true
+    deactivate Driver
+
+    Orchestrator -> Driver: GetResponseAsync(agent, prompt)
+    activate Driver
+    
+    alt Agent is AI
+      Driver -> Driver: Call SemanticKernel\nwith SystemPromptOverride
+    else Agent is Human
+      Driver -> Driver: Send notification\nwait for response
+    end
+    
+    Driver --> Orchestrator: rawResponse
+    deactivate Driver
+
+    Orchestrator -> Tool: ParseResponseAsync(rawResponse)
+    activate Tool
+    Tool -> Tool: Parse text to\nstructured JSON
+    Tool --> Orchestrator: ParsedToolData\n{structuredJson, isValid}
+    deactivate Tool
+
+    alt Data is valid
+      Orchestrator -> Tool: ValidateDataAsync(structuredJson)
+      activate Tool
+      Tool --> Orchestrator: true
+      deactivate Tool
+
+      Orchestrator -> Repo: AddAsync(contribution)
+      activate Repo
+      Repo -> DB: INSERT INTO Contributions
+      activate DB
+      DB --> Repo: contribution
+      deactivate DB
+      Repo --> Orchestrator: contribution
+      deactivate Repo
+    end
+
+  end
+
+  Orchestrator -> Method: AggregateRoundAsync(round, statePayload)
+  activate Method
+  Method -> Method: Analyze all contributions\nApply method-specific logic
+  Method --> Orchestrator: AggregationResult\n{summary, updatedState, shouldContinue}
+  deactivate Method
+
+  Orchestrator -> Repo: UpdateAsync(sessionRound)
+  activate Repo
+  Repo -> DB: UPDATE SessionRounds\nSET Summary = ...
+  activate DB
+  DB --> Repo: sessionRound
+  deactivate DB
+  Repo --> Orchestrator: sessionRound
+  deactivate Repo
+
+  Orchestrator -> Repo: UpdateAsync(session)
+  activate Repo
+  Repo -> DB: UPDATE Sessions\nSET StatePayload = ...,\nCurrentRoundNumber = ...
+  activate DB
+  DB --> Repo: session
+  deactivate DB
+  Repo --> Orchestrator: session
+  deactivate Repo
+
+else Session is complete
+
+  Orchestrator -> Orchestrator: Mark session as Completed
+
+  Orchestrator -> Repo: UpdateAsync(session)
+  activate Repo
+  Repo -> DB: UPDATE Sessions\nSET Status = 'Completed'
+  activate DB
+  DB --> Repo: session
+  deactivate DB
+  Repo --> Orchestrator: session
+  deactivate Repo
+
+end
+
+Orchestrator --> API: sessionRound
+deactivate Orchestrator
+
+API --> User: 200 OK {round, isComplete}
+deactivate API
+
+== Session Finalization ==
+
+User -> API: GET /sessions/{id}/finalize
+activate API
+
+API -> Orchestrator: FinalizeSessionAsync(session)
+activate Orchestrator
+
+Orchestrator -> Method: AggregateRoundAsync(lastRound, statePayload)
+activate Method
+Method --> Orchestrator: final aggregation
+deactivate Method
+
+Orchestrator --> API: finalResult
+deactivate Orchestrator
+
+API --> User: 200 OK {finalDecision, summary}
+deactivate API
+
+note over Orchestrator
+  The Orchestrator coordinates the
+  Cartesian Product of:
+  - Methods (Flow/Rules)
+  - Tools (Schema/Analysis)
+  - Agents (Participants)
+end note
+
+note over Method
+  Implements method-specific logic:
+  - Delphi: Anonymous rounds, convergence
+  - NGT: Structured voting, ranking
+  - Brainstorming: Free-form, no criticism
+end note
+
+note over Tool
+  Provides schema for structured data:
+  - SWOT: {strengths, weaknesses, ...}
+  - AHP: {criteria, weights, ...}
+  - WeightedScoring: {options, scores, ...}
+end note
+
+@enduml

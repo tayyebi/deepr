@@ -1,0 +1,173 @@
+@startuml Deepr Domain Model ERD
+
+!define ENTITY class
+!define VALUE_OBJECT class
+!define ENUM enum
+
+' Enums
+ENUM MethodType {
+  Delphi
+  NGT
+  Brainstorming
+  NominalGroupTechnique
+  ConsensusBuilding
+}
+
+ENUM ToolType {
+  SWOT
+  AHP
+  WeightedScoring
+  CostBenefitAnalysis
+  DecisionMatrix
+}
+
+ENUM Role {
+  Chairman
+  Expert
+  Critic
+  Observer
+}
+
+ENUM SessionStatus {
+  Active
+  Paused
+  Completed
+  Failed
+}
+
+' Base Entity
+abstract class BaseEntity {
+  + Id: Guid
+  + CreatedAt: DateTime
+  + UpdatedAt: DateTime?
+}
+
+' Aggregate Roots
+ENTITY Issue {
+  + Title: string
+  + ContextVector: string
+  + OwnerId: Guid
+  + IsArchived: bool
+  --
+  + UpdateContext(newContext: string)
+  + UpdateTitle(newTitle: string)
+  + Archive()
+  + Restore()
+}
+
+ENTITY Session {
+  + CouncilId: Guid
+  + Status: SessionStatus
+  + CurrentRoundNumber: int
+  + StatePayload: string <<JSONB>>
+  --
+  + AddRound(round: SessionRound)
+  + UpdateStatePayload(payload: string)
+  + Pause()
+  + Resume()
+  + Complete()
+  + Fail()
+  + GetCurrentRound(): SessionRound?
+  + GetRound(roundNumber: int): SessionRound?
+}
+
+' Entities
+ENTITY Council {
+  + IssueId: Guid
+  + SelectedMethod: MethodType
+  + SelectedTool: ToolType
+  --
+  + AddMember(member: CouncilMember)
+  + RemoveMember(agentId: Guid)
+  + ChangeMethod(method: MethodType)
+  + ChangeTool(tool: ToolType)
+  + GetMember(agentId: Guid): CouncilMember?
+}
+
+ENTITY SessionRound {
+  + SessionId: Guid
+  + RoundNumber: int
+  + Instructions: string
+  + Summary: string?
+  --
+  + AddContribution(contribution: Contribution)
+  + SetSummary(summary: string)
+  + UpdateInstructions(instructions: string)
+}
+
+ENTITY Contribution {
+  + SessionRoundId: Guid
+  + AgentId: Guid
+  + RawContent: string
+  + StructuredData: string <<JSONB>>
+  --
+  + UpdateStructuredData(data: string)
+}
+
+' Value Objects
+VALUE_OBJECT CouncilMember <<ValueObject>> {
+  + AgentId: Guid
+  + Name: string
+  + Role: Role
+  + IsAi: bool
+  + SystemPromptOverride: string?
+  --
+  + UpdateSystemPrompt(prompt: string?)
+  + AssignRole(role: Role)
+}
+
+' Inheritance
+BaseEntity <|-- Issue
+BaseEntity <|-- Council
+BaseEntity <|-- Session
+BaseEntity <|-- SessionRound
+BaseEntity <|-- Contribution
+
+' Relationships
+Issue "1" -- "0..*" Council : "has councils >"
+Council "1" *-- "1..*" CouncilMember : "contains >"
+Council "1" -- "0..*" Session : "executes >"
+Session "1" *-- "0..*" SessionRound : "has rounds >"
+SessionRound "1" *-- "0..*" Contribution : "collects >"
+
+' Enum Usage
+Council ..> MethodType : uses
+Council ..> ToolType : uses
+CouncilMember ..> Role : uses
+Session ..> SessionStatus : uses
+
+note right of Issue
+  Aggregate Root
+  Manages the problem statement
+  and context for decision making
+end note
+
+note right of Council
+  Entity
+  Represents the team assembled
+  to solve an Issue with a specific
+  Method and Tool combination
+end note
+
+note right of Session
+  Aggregate Root
+  Tracks runtime execution
+  StatePayload stores method-specific
+  state in JSONB format
+end note
+
+note right of CouncilMember
+  Value Object
+  Represents an agent's participation
+  in the council with role and
+  optional AI prompt customization
+end note
+
+note right of Contribution
+  Entity
+  Stores agent input with raw text
+  and parsed structured data (JSONB)
+  matching the Tool's schema
+end note
+
+@enduml
