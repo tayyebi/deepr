@@ -2,8 +2,9 @@ namespace Deepr.Domain.Enums;
 
 public enum MethodType
 {
-    Analytical,
-    Intuitive,
-    Collaborative,
-    DataDriven
+    Delphi,
+    NGT,
+    Brainstorming,
+    NominalGroupTechnique,
+    ConsensusBuilding
 }
