@@ -58,7 +58,13 @@ activate Orchestrator
 
 Orchestrator -> Method: GetNextPromptAsync(session)
 activate Method
-Method -> Method: Analyze session history\nand state payload
+note right of Method
+  Analyze session history and state payload
+  Apply method-specific logic:
+  - Delphi: Check convergence, prepare anonymous round
+  - NGT: Determine current phase (generation, voting, ranking)
+  - Brainstorming: Continue collection or move to consolidation
+end note
 Method --> Orchestrator: NextPromptResult\n{promptText, isComplete}
 deactivate Method
 

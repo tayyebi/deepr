@@ -17,17 +17,14 @@
   - [ ] Convergence detection
   - [ ] Round-based consensus building
 - [ ] Implement NGT (Nominal Group Technique)
-  - [ ] Structured voting
-  - [ ] Ranking algorithm
+  - [ ] Silent generation phase
+  - [ ] Round-robin sharing
+  - [ ] Structured voting and ranking
   - [ ] Priority calculation
 - [ ] Implement Brainstorming method
   - [ ] Free-form collection
   - [ ] No-criticism enforcement
   - [ ] Idea consolidation
-- [ ] Implement NominalGroupTechnique method
-  - [ ] Silent generation
-  - [ ] Round-robin sharing
-  - [ ] Voting mechanism
 - [ ] Implement ConsensusBuilding method
   - [ ] Discussion facilitation
   - [ ] Agreement tracking
