@@ -29,6 +29,9 @@ public class SessionRound : BaseEntity
         if (contribution == null)
             throw new ArgumentNullException(nameof(contribution));
 
+        if (contribution.SessionRoundId != Id)
+            throw new InvalidOperationException($"Contribution belongs to a different session round (expected {Id}, got {contribution.SessionRoundId})");
+
         _contributions.Add(contribution);
     }
 

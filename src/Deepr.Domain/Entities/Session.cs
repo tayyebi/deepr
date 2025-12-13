@@ -31,6 +31,12 @@ public class Session : BaseEntity
         if (round == null)
             throw new ArgumentNullException(nameof(round));
 
+        if (round.SessionId != Id)
+            throw new InvalidOperationException($"Round belongs to a different session (expected {Id}, got {round.SessionId})");
+
+        if (_rounds.Any() && round.RoundNumber != CurrentRoundNumber + 1)
+            throw new InvalidOperationException($"Round number must be sequential (expected {CurrentRoundNumber + 1}, got {round.RoundNumber})");
+
         _rounds.Add(round);
         CurrentRoundNumber = round.RoundNumber;
     }
