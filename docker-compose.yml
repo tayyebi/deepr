@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   deepr-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: deepr-api:local
     container_name: deepr-api
     restart: unless-stopped
     ports:
