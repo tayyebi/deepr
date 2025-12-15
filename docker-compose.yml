@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   deepr-api:
-    image: deepr-api:local
+    image: ghcr.io/tayyebi/deepr:latest
+    pull_policy: always
     container_name: deepr-api
     restart: unless-stopped
     ports:

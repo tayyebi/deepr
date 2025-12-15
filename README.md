@@ -2,12 +2,13 @@
 
 Ultimate decision making assistant
 
-## Docker artifacts
+## Docker artifacts and registry image
 
-The CI workflow now produces downloadable artifacts instead of pushing images to a remote registry:
+The CI workflow now publishes the image to GitHub Container Registry and also produces downloadable artifacts:
 
+- `ghcr.io/tayyebi/deepr:latest` — pushed on main/develop
 - `deepr-api` — published .NET output
-- `deepr-api-image` — Docker image saved as a `tar.gz` file (tagged `deepr-api:local`)
+- `deepr-api-image` — Docker image saved as a `tar.gz` file (tagged `ghcr.io/tayyebi/deepr:latest`)
 - `deepr-compose-bundle` — tarball with the ready-to-run `docker-compose.yml`
 
 Download the artifacts from the latest successful GitHub Actions run, then:
@@ -16,7 +17,7 @@ Download the artifacts from the latest successful GitHub Actions run, then:
 # Load the Docker image
 docker load -i deepr-api-image.tar.gz
 
-# (Optional) refresh docker-compose.yml from the bundle
+# (Optional) refresh docker-compose.yml from the bundle (uses ghcr.io/tayyebi/deepr:latest)
 tar -xzf docker-compose-bundle.tar.gz
 
 # Start the stack (API + Postgres)
@@ -29,11 +30,18 @@ docker compose down
 
 The API will be available at `http://localhost:8080` with a Postgres database (`postgres/postgres`) preconfigured via the compose file.
 
-### Build locally instead
-
-If you prefer to build the image yourself:
+### Pull from registry instead
 
 ```bash
-docker build -t deepr-api:local .
+docker pull ghcr.io/tayyebi/deepr:latest
+docker compose up -d
+```
+
+### Build locally instead
+
+If you prefer to build the image yourself (matching the compose tag):
+
+```bash
+docker build -t ghcr.io/tayyebi/deepr:latest .
 docker compose up -d
 ```
