@@ -12,6 +12,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=deepr-db;Database=deepr;Username=postgres;Password=postgres
+      - AllowedOrigins__0=http://localhost:8081
     depends_on:
       deepr-db:
         condition: service_healthy
@@ -23,6 +24,23 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
+
+  deepr-web:
+    image: ghcr.io/tayyebi/deepr-web:latest
+    pull_policy: always
+    container_name: deepr-web
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8081
+      - DeeprApi__BaseUrl=http://deepr-api:8080/
+    depends_on:
+      deepr-api:
+        condition: service_healthy
+    networks:
+      - deepr-network
 
   deepr-db:
     image: postgres:16-alpine

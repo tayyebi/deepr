@@ -1,0 +1,320 @@
+@page "/councils/{Id:guid}"
+@rendermode InteractiveServer
+@inject DeeprApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Council — Deepr</PageTitle>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_council is null)
+{
+    <div class="alert alert-warning">Council not found.</div>
+}
+else
+{
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Issues</a></li>
+            <li class="breadcrumb-item"><a href="issues/@_council.IssueId">Issue</a></li>
+            <li class="breadcrumb-item active">Council</li>
+        </ol>
+    </nav>
+
+    <div class="mb-3">
+        <h2>Council</h2>
+        <p>
+            <span class="badge bg-primary me-1">@MethodName(_council.SelectedMethod)</span>
+            <span class="badge bg-secondary me-1">@ToolName(_council.SelectedTool)</span>
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Members panel -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Members (@_council.Agents.Count)</strong>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="() => _showAddMember = !_showAddMember">
+                        @(_showAddMember ? "Cancel" : "+ Add Member")
+                    </button>
+                </div>
+                @if (_showAddMember)
+                {
+                    <div class="card-body border-bottom">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Name</label>
+                            <InputText @bind-Value="_memberForm.Name" class="form-control form-control-sm" placeholder="e.g. Dr. Sarah Chen" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Role</label>
+                            <select class="form-select form-select-sm" @bind="_memberForm.Role">
+                                <option value="0">Chairman</option>
+                                <option value="1" selected>Expert</option>
+                                <option value="2">Critic</option>
+                                <option value="3">Observer</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="_memberForm.IsAi" class="form-check-input" id="isAiCheck" />
+                                <label class="form-check-label" for="isAiCheck">AI Agent</label>
+                            </div>
+                        </div>
+                        @if (_memberError is not null)
+                        {
+                            <div class="alert alert-danger py-1 small">@_memberError</div>
+                        }
+                        <button class="btn btn-sm btn-primary" @onclick="AddMember" disabled="@_savingMember">
+                            @(_savingMember ? "Adding..." : "Add")
+                        </button>
+                    </div>
+                }
+                <ul class="list-group list-group-flush">
+                    @if (!_council.Agents.Any())
+                    {
+                        <li class="list-group-item text-muted small">No members yet</li>
+                    }
+                    @foreach (var agent in _council.Agents)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@agent.Name</strong>
+                                    <span class="badge @RoleBadgeClass(agent.Role) ms-1">@RoleName(agent.Role)</span>
+                                </div>
+                                <span class="text-muted small">@(agent.IsAi ? "🤖 AI" : "👤 Human")</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- Session panel -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header"><strong>Session</strong></div>
+                <div class="card-body">
+                    @if (_session is null)
+                    {
+                        <p class="text-muted">No active session.</p>
+                        @if (_sessionError is not null)
+                        {
+                            <div class="alert alert-danger small">@_sessionError</div>
+                        }
+                        <button class="btn btn-success" @onclick="StartSession"
+                            disabled="@(_startingSession || !_council.Agents.Any())">
+                            @(_startingSession ? "Starting..." : "▶ Start Session")
+                        </button>
+                        @if (!_council.Agents.Any())
+                        {
+                            <p class="text-muted small mt-2">Add at least one member to start a session.</p>
+                        }
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <span class="badge @StatusBadgeClass(_session.Status) me-2">@StatusName(_session.Status)</span>
+                            <span class="text-muted small">Round @_session.CurrentRoundNumber</span>
+                        </div>
+
+                        @if (_rounds.Any())
+                        {
+                            @foreach (var round in _rounds.OrderBy(r => r.RoundNumber))
+                            {
+                                <div class="card mb-2 border-light">
+                                    <div class="card-header py-1 bg-light small">
+                                        <strong>Round @round.RoundNumber</strong>
+                                    </div>
+                                    <div class="card-body py-2">
+                                        @if (round.Summary is not null)
+                                        {
+                                            <p class="small mb-2" style="white-space:pre-wrap">@round.Summary</p>
+                                        }
+                                        @foreach (var c in round.Contributions)
+                                        {
+                                            <div class="border-start border-3 ps-2 mb-1 small">
+                                                <span class="text-muted">Agent @c.AgentId.ToString()[..8]…</span>
+                                                <p class="mb-0">@c.RawContent</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                        @if (_finalResult is not null)
+                        {
+                            <div class="alert alert-success">
+                                <strong>Final Result:</strong>
+                                <pre class="mb-0 mt-1 small" style="white-space:pre-wrap">@_finalResult</pre>
+                            </div>
+                        }
+
+                        @if (_roundError is not null)
+                        {
+                            <div class="alert alert-danger small">@_roundError</div>
+                        }
+
+                        <div class="d-flex gap-2 mt-2">
+                            @if (_session.Status == 0)
+                            {
+                                <button class="btn btn-primary" @onclick="ExecuteRound" disabled="@_executingRound">
+                                    @(_executingRound ? "Running..." : "⚡ Execute Next Round")
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="FinalizeSession" disabled="@_finalizing">
+                                    @(_finalizing ? "Finalizing..." : "✅ Finalize")
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CouncilDto? _council;
+    private SessionDto? _session;
+    private List<SessionRoundDto> _rounds = new();
+    private string? _finalResult;
+    private bool _loading = true;
+    private string? _error;
+
+    private bool _showAddMember;
+    private bool _savingMember;
+    private string? _memberError;
+    private MemberForm _memberForm = new();
+
+    private bool _startingSession;
+    private string? _sessionError;
+
+    private bool _executingRound;
+    private bool _finalizing;
+    private string? _roundError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _council = await Api.GetCouncilAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task AddMember()
+    {
+        if (string.IsNullOrWhiteSpace(_memberForm.Name)) { _memberError = "Name is required."; return; }
+        _savingMember = true;
+        _memberError = null;
+        try
+        {
+            var agentId = Guid.NewGuid();
+            _council = await Api.AddMemberAsync(Id, agentId, _memberForm.Name, _memberForm.Role, _memberForm.IsAi);
+            _memberForm = new();
+            _showAddMember = false;
+        }
+        catch (Exception ex)
+        {
+            _memberError = ex.Message;
+        }
+        finally
+        {
+            _savingMember = false;
+        }
+    }
+
+    private async Task StartSession()
+    {
+        _startingSession = true;
+        _sessionError = null;
+        try
+        {
+            _session = await Api.StartSessionAsync(Id);
+            _rounds.Clear();
+            _finalResult = null;
+        }
+        catch (Exception ex)
+        {
+            _sessionError = ex.Message;
+        }
+        finally
+        {
+            _startingSession = false;
+        }
+    }
+
+    private async Task ExecuteRound()
+    {
+        if (_session is null) return;
+        _executingRound = true;
+        _roundError = null;
+        try
+        {
+            var round = await Api.ExecuteRoundAsync(_session.Id);
+            if (round is not null)
+                _rounds.Add(round);
+            _session = await Api.GetSessionAsync(_session.Id);
+        }
+        catch (Exception ex)
+        {
+            _roundError = ex.Message;
+        }
+        finally
+        {
+            _executingRound = false;
+        }
+    }
+
+    private async Task FinalizeSession()
+    {
+        if (_session is null) return;
+        _finalizing = true;
+        _roundError = null;
+        try
+        {
+            _finalResult = await Api.FinalizeSessionAsync(_session.Id);
+            _session = await Api.GetSessionAsync(_session.Id);
+        }
+        catch (Exception ex)
+        {
+            _roundError = ex.Message;
+        }
+        finally
+        {
+            _finalizing = false;
+        }
+    }
+
+    private static string MethodName(int m) => m switch { 0 => "Delphi", 2 => "Brainstorming", 4 => "Consensus", _ => $"Method {m}" };
+    private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", _ => $"Tool {t}" };
+    private static string RoleName(int r) => r switch { 0 => "Chairman", 1 => "Expert", 2 => "Critic", 3 => "Observer", _ => $"Role {r}" };
+    private static string RoleBadgeClass(int r) => r switch { 0 => "bg-warning text-dark", 1 => "bg-info text-dark", 2 => "bg-danger", _ => "bg-secondary" };
+    private static string StatusName(int s) => s switch { 0 => "Active", 1 => "Paused", 2 => "Completed", 3 => "Failed", _ => "Unknown" };
+    private static string StatusBadgeClass(int s) => s switch { 0 => "bg-success", 1 => "bg-warning text-dark", 2 => "bg-primary", 3 => "bg-danger", _ => "bg-secondary" };
+
+    private class MemberForm
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Role { get; set; } = 1;
+        public bool IsAi { get; set; } = true;
+    }
+}
