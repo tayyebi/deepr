@@ -1,6 +1,6 @@
 # deepr — Ultimate Decision Making Assistant
 
-**deepr** is a structured group decision-making API that orchestrates multi-agent councils using proven decision methods (Delphi, Brainstorming, Consensus Building) and analytical tools (SWOT, Weighted Scoring). It supports both AI agents (via [Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)) and human participants.
+**deepr** is a structured group decision-making API that orchestrates multi-agent councils using proven decision methods (Delphi, NGT, Brainstorming, Consensus Building, ADKAR) and analytical tools (SWOT, PESTLE, Weighted Scoring). It supports both AI agents (via [Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)) and human participants.
 
 ## Screenshots
 
@@ -15,6 +15,22 @@
 ### Web Client — Issue Detail (filled form)
 
 ![Issue Detail](https://github.com/user-attachments/assets/38c8d66a-a08a-4907-a594-ce9db02ac4f8)
+
+### Web Client — Create Council with ADKAR & PESTLE
+
+![Create Council — ADKAR and PESTLE selected](https://github.com/user-attachments/assets/7bea5274-9a2a-4afd-b450-2849f1da5ced)
+
+### Web Client — ADKAR Council with Active Session
+
+![ADKAR Council — PESTLE badge, member added, session active](https://github.com/user-attachments/assets/f99beea0-e884-4f3e-9939-c35920456510)
+
+### Web Client — ADKAR Phase 1 (Awareness) Round Result
+
+![ADKAR Phase 1 Awareness round](https://github.com/user-attachments/assets/b6be7ad8-37d9-41cb-a8fb-e1b3cfd09bf2)
+
+### Web Client — ADKAR Session Completed (all 5 phases)
+
+![ADKAR all 5 phases completed](https://github.com/user-attachments/assets/f1effa43-9565-4a0d-8b8f-4144b38bb664)
 
 ### Web Client — Council with Members & Active Session
 
@@ -47,12 +63,15 @@ Deepr.Web             → Blazor Server client app
 | `Brainstorming` (2) | Free-form idea collection | 1 |
 | `Delphi` (0) | Anonymous iterative expert consensus | 3 |
 | `ConsensusBuilding` (4) | Structured agreement tracking | 2 |
+| `NGT` (1) | Nominal Group Technique — silent generation, sharing, clarification, voting | 4 |
+| `ADKAR` (5) | Change management — Awareness, Desire, Knowledge, Ability, Reinforcement | 5 |
 
 ### Analytical Tools
 | Tool | Description |
 |---|---|
 | `SWOT` (0) | Strengths, Weaknesses, Opportunities, Threats |
 | `WeightedScoring` (2) | Multi-criteria option scoring |
+| `PESTLE` (5) | Political, Economic, Social, Technological, Legal, Environmental |
 
 ### Agent Roles
 | Role | Value | Description |
@@ -161,8 +180,8 @@ Content-Type: application/json
 }
 ```
 
-> `selectedMethod` values: `0`=Delphi, `2`=Brainstorming, `4`=ConsensusBuilding  
-> `selectedTool` values: `0`=SWOT, `2`=WeightedScoring
+> `selectedMethod` values: `0`=Delphi, `1`=NGT, `2`=Brainstorming, `4`=ConsensusBuilding, `5`=ADKAR  
+> `selectedTool` values: `0`=SWOT, `2`=WeightedScoring, `5`=PESTLE
 
 ---
 

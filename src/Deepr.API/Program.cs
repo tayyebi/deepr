@@ -55,10 +55,13 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IDecisionMethod, BrainstormingMethod>();
 builder.Services.AddScoped<IDecisionMethod, DelphiMethod>();
 builder.Services.AddScoped<IDecisionMethod, ConsensusMethod>();
+builder.Services.AddScoped<IDecisionMethod, NgtMethod>();
+builder.Services.AddScoped<IDecisionMethod, AdkarMethod>();
 
 // Add Tool Adapters
 builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();
 builder.Services.AddScoped<IToolAdapter, WeightedScoringAdapter>();
+builder.Services.AddScoped<IToolAdapter, PestleToolAdapter>();
 
 // Add Agent Driver (Echo driver as default; replace with SemanticKernelAgentDriver when OpenAI is configured)
 builder.Services.AddScoped<IAgentDriver, EchoAgentDriver>();

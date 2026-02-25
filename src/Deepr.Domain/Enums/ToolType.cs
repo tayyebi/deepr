@@ -6,5 +6,6 @@ public enum ToolType
     AHP,
     WeightedScoring,
     CostBenefitAnalysis,
-    DecisionMatrix
+    DecisionMatrix,
+    PESTLE
 }

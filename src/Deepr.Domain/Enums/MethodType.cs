@@ -6,5 +6,6 @@ public enum MethodType
     NGT,
     Brainstorming,
     NominalGroupTechnique,
-    ConsensusBuilding
+    ConsensusBuilding,
+    ADKAR
 }

@@ -304,8 +304,8 @@ else
         }
     }
 
-    private static string MethodName(int m) => m switch { 0 => "Delphi", 2 => "Brainstorming", 4 => "Consensus", _ => $"Method {m}" };
-    private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", _ => $"Tool {t}" };
+    private static string MethodName(int m) => m switch { 0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus", 5 => "ADKAR", _ => $"Method {m}" };
+    private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", 5 => "PESTLE", _ => $"Tool {t}" };
     private static string RoleName(int r) => r switch { 0 => "Chairman", 1 => "Expert", 2 => "Critic", 3 => "Observer", _ => $"Role {r}" };
     private static string RoleBadgeClass(int r) => r switch { 0 => "bg-warning text-dark", 1 => "bg-info text-dark", 2 => "bg-danger", _ => "bg-secondary" };
     private static string StatusName(int s) => s switch { 0 => "Active", 1 => "Paused", 2 => "Completed", 3 => "Failed", _ => "Unknown" };

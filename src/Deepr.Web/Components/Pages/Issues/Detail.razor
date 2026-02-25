@@ -46,8 +46,10 @@ else
                         <label class="form-label fw-semibold">Decision Method</label>
                         <select class="form-select" @bind="_councilForm.Method">
                             <option value="0">Delphi (3-round iterative)</option>
+                            <option value="1">NGT — Nominal Group Technique (4-round)</option>
                             <option value="2" selected>Brainstorming (1-round free-form)</option>
                             <option value="4">Consensus Building (2-round)</option>
+                            <option value="5">ADKAR — Change Management (5-round)</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -55,6 +57,7 @@ else
                         <select class="form-select" @bind="_councilForm.Tool">
                             <option value="0" selected>SWOT Analysis</option>
                             <option value="2">Weighted Scoring</option>
+                            <option value="5">PESTLE Analysis</option>
                         </select>
                     </div>
                 </div>
@@ -157,8 +160,10 @@ else
     private static string MethodName(int m) => m switch
     {
         0 => "Delphi",
+        1 => "NGT",
         2 => "Brainstorming",
         4 => "Consensus",
+        5 => "ADKAR",
         _ => $"Method {m}"
     };
 
@@ -166,6 +171,7 @@ else
     {
         0 => "SWOT",
         2 => "Weighted Scoring",
+        5 => "PESTLE",
         _ => $"Tool {t}"
     };
 
