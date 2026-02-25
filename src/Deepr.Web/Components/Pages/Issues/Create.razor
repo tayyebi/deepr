@@ -1,0 +1,76 @@
+@page "/issues/create"
+@rendermode InteractiveServer
+@inject DeeprApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>New Issue — Deepr</PageTitle>
+
+<h1>New Issue</h1>
+<p class="text-muted">Define the problem or decision that needs to be addressed.</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <EditForm Model="_form" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Title</label>
+                <InputText @bind-Value="_form.Title" class="form-control" placeholder="e.g. Should we adopt microservices?" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Context</label>
+                <InputTextArea @bind-Value="_form.ContextVector" class="form-control" rows="4"
+                    placeholder="Describe the background, constraints, and objectives..." />
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="alert alert-danger">@_error</div>
+            }
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" disabled="@_saving">
+                    @(_saving ? "Creating..." : "Create Issue")
+                </button>
+                <a href="/" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly IssueForm _form = new();
+    private bool _saving;
+    private string? _error;
+
+    private async Task HandleSubmit()
+    {
+        _saving = true;
+        _error = null;
+        try
+        {
+            var ownerId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var issue = await Api.CreateIssueAsync(_form.Title, _form.ContextVector, ownerId);
+            if (issue is not null)
+                Nav.NavigateTo($"/issues/{issue.Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private class IssueForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Title { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ContextVector { get; set; } = string.Empty;
+    }
+}

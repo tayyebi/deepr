@@ -1,0 +1,177 @@
+@page "/issues/{Id:guid}"
+@rendermode InteractiveServer
+@inject DeeprApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>@(_issue?.Title ?? "Issue") — Deepr</PageTitle>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_issue is null)
+{
+    <div class="alert alert-warning">Issue not found.</div>
+}
+else
+{
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Issues</a></li>
+            <li class="breadcrumb-item active">@_issue.Title</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h1>@_issue.Title</h1>
+            <p class="text-muted">@_issue.ContextVector</p>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Councils</h4>
+        <button class="btn btn-primary" @onclick="() => _showCreateCouncil = true">+ New Council</button>
+    </div>
+
+    @if (_showCreateCouncil)
+    {
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">Create Council</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Decision Method</label>
+                        <select class="form-select" @bind="_councilForm.Method">
+                            <option value="0">Delphi (3-round iterative)</option>
+                            <option value="2" selected>Brainstorming (1-round free-form)</option>
+                            <option value="4">Consensus Building (2-round)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Analytical Tool</label>
+                        <select class="form-select" @bind="_councilForm.Tool">
+                            <option value="0" selected>SWOT Analysis</option>
+                            <option value="2">Weighted Scoring</option>
+                        </select>
+                    </div>
+                </div>
+                @if (_councilError is not null)
+                {
+                    <div class="alert alert-danger mt-3">@_councilError</div>
+                }
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-primary" @onclick="CreateCouncil" disabled="@_savingCouncil">
+                        @(_savingCouncil ? "Creating..." : "Create Council")
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => _showCreateCouncil = false">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_councils.Any())
+    {
+        <div class="list-group">
+            @foreach (var council in _councils)
+            {
+                <a href="councils/@council.Id" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="badge bg-primary me-2">@MethodName(council.SelectedMethod)</span>
+                            <span class="badge bg-secondary me-2">@ToolName(council.SelectedTool)</span>
+                            <span class="text-muted small">@council.Agents.Count member(s)</span>
+                        </div>
+                        <small class="text-muted">@council.CreatedAt.ToString("MMM d, yyyy")</small>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else if (!_showCreateCouncil)
+    {
+        <div class="alert alert-light">No councils yet. Create one to start a decision session.</div>
+    }
+}
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private IssueDto? _issue;
+    private List<CouncilDto> _councils = new();
+    private bool _loading = true;
+    private string? _error;
+
+    private bool _showCreateCouncil;
+    private bool _savingCouncil;
+    private string? _councilError;
+    private CouncilForm _councilForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _issue = await Api.GetIssueAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateCouncil()
+    {
+        _savingCouncil = true;
+        _councilError = null;
+        try
+        {
+            var council = await Api.CreateCouncilAsync(Id, _councilForm.Method, _councilForm.Tool);
+            if (council is not null)
+            {
+                _councils.Add(council);
+                _showCreateCouncil = false;
+                Nav.NavigateTo($"/councils/{council.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _councilError = ex.Message;
+        }
+        finally
+        {
+            _savingCouncil = false;
+        }
+    }
+
+    private static string MethodName(int m) => m switch
+    {
+        0 => "Delphi",
+        2 => "Brainstorming",
+        4 => "Consensus",
+        _ => $"Method {m}"
+    };
+
+    private static string ToolName(int t) => t switch
+    {
+        0 => "SWOT",
+        2 => "Weighted Scoring",
+        _ => $"Tool {t}"
+    };
+
+    private class CouncilForm
+    {
+        public int Method { get; set; } = 2;
+        public int Tool { get; set; } = 0;
+    }
+}
