@@ -1,4 +1,4 @@
-name: CI/CD - Build and Deploy
+name: CI - Build and Package
 
 on:
   push:
@@ -53,10 +53,9 @@ jobs:
           retention-days: 7
 
   build-docker:
-    name: Build Docker Image
+    name: Build Docker Artifacts
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     permissions:
       contents: read
@@ -70,6 +69,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       
       - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -90,123 +90,36 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy:
-    name: Deploy to Remote Server
-    runs-on: ubuntu-latest
-    needs: build-docker
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    
-    permissions:
-      contents: read
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
       
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+      - name: Build Docker image
+        run: docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
       
-      - name: Deploy to remote server
-        env:
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Save Docker image as tarball
         run: |
-          # Create deployment script
-          cat > deploy.sh << 'DEPLOY_SCRIPT'
-          #!/bin/bash
-          set -e
-          
-          echo "=== Starting deployment ==="
-          
-          # Check if Docker is installed
-          if ! command -v docker &> /dev/null; then
-              echo "Docker not found. Installing Docker..."
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sudo sh get-docker.sh
-              sudo usermod -aG docker $USER
-              rm get-docker.sh
-              echo "Docker installed successfully"
-          else
-              echo "Docker is already installed"
-          fi
-          
-          # Check if Docker service is running
-          if ! sudo systemctl is-active --quiet docker; then
-              echo "Starting Docker service..."
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              echo "Docker service started"
-          else
-              echo "Docker service is running"
-          fi
-          
-          # Login to GitHub Container Registry
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-          
-          # Pull the latest image
-          IMAGE_TAG="${GITHUB_REF##*/}"
-          echo "Pulling image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-          
-          # Stop and remove existing container if it exists
-          if docker ps -a | grep -q deepr-api; then
-              echo "Stopping existing container..."
-              docker stop deepr-api || true
-              docker rm deepr-api || true
-          fi
-          
-          # Run the new container
-          echo "Starting new container..."
-          docker run -d \
-            --name deepr-api \
-            --restart unless-stopped \
-            -p 8080:8080 \
-            -e ASPNETCORE_ENVIRONMENT=Production \
-            -e ASPNETCORE_URLS=http://+:8080 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-          
-          # Clean up old images
-          echo "Cleaning up old Docker images..."
-          docker image prune -af --filter "until=24h" || true
-          
-          echo "=== Deployment completed successfully ==="
-          
-          # Show container status
-          docker ps | grep deepr-api
-          DEPLOY_SCRIPT
-          
-          chmod +x deploy.sh
-          
-          # Copy deployment script to remote server and execute
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:~/
-          
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \
-            "export GITHUB_TOKEN='${GITHUB_TOKEN}' && \
-             export GITHUB_ACTOR='${{ github.actor }}' && \
-             export GITHUB_REF='${{ github.ref }}' && \
-             bash ~/deploy.sh"
+          mkdir -p artifacts
+          docker save ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest | gzip > artifacts/deepr-api-image.tar.gz
       
-      - name: Cleanup SSH key
-        if: always()
+      - name: Package docker-compose bundle
         run: |
-          rm -f ~/.ssh/deploy_key
-          rm -f deploy.sh
+          mkdir -p artifacts/bundle
+          cp docker-compose.yml artifacts/bundle/
+          tar -czf artifacts/docker-compose-bundle.tar.gz -C artifacts/bundle .
       
-      - name: Deployment notification
-        if: success()
-        run: |
-          echo "✅ Deployment successful to ${{ secrets.REMOTE_HOST }}"
-          echo "Branch: ${{ github.ref }}"
-          echo "Commit: ${{ github.sha }}"
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepr-api-image
+          path: artifacts/deepr-api-image.tar.gz
+          retention-days: 7
+      
+      - name: Upload docker-compose bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepr-compose-bundle
+          path: artifacts/docker-compose-bundle.tar.gz
+          retention-days: 7
