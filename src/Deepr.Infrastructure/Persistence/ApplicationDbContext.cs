@@ -81,8 +81,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CouncilId);
             entity.HasIndex(e => e.Status);
 
-            // Configure one-to-many relationship with SessionRounds
-            entity.HasMany<SessionRound>()
+            entity.HasMany(e => e.Rounds)
                 .WithOne()
                 .HasForeignKey(sr => sr.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -98,8 +97,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Summary);
             entity.HasIndex(e => new { e.SessionId, e.RoundNumber }).IsUnique();
 
-            // Configure one-to-many relationship with Contributions
-            entity.HasMany<Contribution>()
+            entity.HasMany(e => e.Contributions)
                 .WithOne()
                 .HasForeignKey(c => c.SessionRoundId)
                 .OnDelete(DeleteBehavior.Cascade);

@@ -90,16 +90,20 @@ public class SessionOrchestratorService : ISessionOrchestrator
         if (session.Status != SessionStatus.Completed)
             session.Complete();
 
+        // Use the StatePayload for the final result since rounds may not be eagerly loaded
+        var statePayload = session.StatePayload;
+
         var summaries = session.Rounds
             .Where(r => r.Summary != null)
             .Select(r => $"Round {r.RoundNumber}: {r.Summary}")
             .ToList();
 
-        var finalResult = summaries.Any()
-            ? string.Join("\n\n", summaries)
-            : "Session completed with no rounds.";
+        if (summaries.Any())
+            return await Task.FromResult(string.Join("\n\n", summaries));
 
-        return await Task.FromResult(finalResult);
+        // Fallback: return a formatted summary from state payload
+        return await Task.FromResult(
+            $"Session completed.\n\nFinal state:\n{statePayload}");
     }
 
     private IDecisionMethod GetDecisionMethod(MethodType type)
