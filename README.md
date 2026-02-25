@@ -4,13 +4,29 @@
 
 ## Screenshots
 
-### Swagger UI — API Overview
+### Web Client — Dashboard
+
+![Dashboard](https://github.com/user-attachments/assets/41b17dce-c0b9-4f3f-84c2-1ca1ff7c172b)
+
+### Web Client — Create Issue
+
+![Create Issue Form](https://github.com/user-attachments/assets/3a0d0ab1-2dc2-437c-ad43-cf9d2df1a083)
+
+### Web Client — Issue Detail (filled form)
+
+![Issue Detail](https://github.com/user-attachments/assets/38c8d66a-a08a-4907-a594-ce9db02ac4f8)
+
+### Web Client — Council with Members & Active Session
+
+![Council Session](https://github.com/user-attachments/assets/ce1af6a1-a26d-4b57-9f22-0315920d329c)
+
+### Web Client — Round Results
+
+![Round Results](https://github.com/user-attachments/assets/d4c9b006-0b2b-4584-89e3-44b273b39895)
+
+### Swagger UI — REST API
 
 ![Swagger UI Overview](https://github.com/user-attachments/assets/00517cc5-10f1-4db9-885a-da6e6a3a1ce3)
-
-### Creating an Issue via POST /api/Issues
-
-![Create Issue Endpoint](https://github.com/user-attachments/assets/4621aa57-8d5e-4418-89df-30fcfc8bee35)
 
 ---
 
@@ -22,6 +38,7 @@ Deepr.Application     → CQRS (MediatR), Interfaces, DTOs
 Deepr.Infrastructure  → EF Core / PostgreSQL, Decision Methods,
                         Tool Adapters, Agent Drivers, Orchestrator
 Deepr.API             → ASP.NET Core REST API + Swagger UI
+Deepr.Web             → Blazor Server client app
 ```
 
 ### Decision Methods
@@ -59,7 +76,11 @@ Deepr.API             → ASP.NET Core REST API + Swagger UI
 docker compose up
 ```
 
-The API is available at `http://localhost:8080` and Swagger UI loads at the root path.
+| Service | URL | Description |
+|---|---|---|
+| Web client | `http://localhost:8081` | Blazor Server UI |
+| REST API | `http://localhost:8080` | Swagger UI at root |
+| PostgreSQL | `localhost:5432` | Database |
 
 ### Run Locally (development)
 
@@ -68,12 +89,16 @@ The API is available at `http://localhost:8080` and Swagger UI loads at the root
 docker run -d -e POSTGRES_DB=deepr -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16-alpine
 
-# Run the API
+# Terminal 1 — API (http://localhost:5011)
 cd src/Deepr.API
+dotnet run
+
+# Terminal 2 — Web client (http://localhost:5012)
+cd src/Deepr.Web
 dotnet run
 ```
 
-Open `http://localhost:5011` to see the Swagger UI. The database is migrated automatically on startup.
+The database is migrated automatically on API startup.
 
 ---
 
@@ -292,8 +317,14 @@ Full interactive docs available at the Swagger UI root (`/`).
 ## Development
 
 ```bash
-# Build
+# Build entire solution
 dotnet build Deepr.sln
+
+# Run API (http://localhost:5011 — Swagger at root)
+cd src/Deepr.API && dotnet run
+
+# Run Web client (http://localhost:5012)
+cd src/Deepr.Web && dotnet run
 
 # Create/update migrations
 dotnet tool install --global dotnet-ef
@@ -305,9 +336,6 @@ dotnet test
 ```
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment instructions.
-# deepr
-
-Ultimate decision making assistant
 
 ## Docker artifacts and registry image
 

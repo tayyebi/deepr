@@ -15,6 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
+// Add CORS for the Blazor client
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins(
+                builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? new[] { "http://localhost:5012", "http://localhost:8081" })
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 // Add OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -76,6 +87,8 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 
