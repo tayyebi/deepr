@@ -1,7 +1,11 @@
 using Deepr.Application.Behaviors;
 using Deepr.Application.Interfaces;
+using Deepr.Infrastructure.AgentDrivers;
+using Deepr.Infrastructure.DecisionMethods;
 using Deepr.Infrastructure.Persistence;
 using Deepr.Infrastructure.Repositories;
+using Deepr.Infrastructure.Services;
+using Deepr.Infrastructure.ToolAdapters;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +17,10 @@ builder.Services.AddControllers();
 
 // Add OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Deepr API", Version = "v1", Description = "Ultimate decision making assistant API" });
+});
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -33,19 +40,46 @@ builder.Services.AddValidatorsFromAssembly(typeof(IDecisionMethod).Assembly);
 // Add Repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+// Add Decision Methods
+builder.Services.AddScoped<IDecisionMethod, BrainstormingMethod>();
+builder.Services.AddScoped<IDecisionMethod, DelphiMethod>();
+builder.Services.AddScoped<IDecisionMethod, ConsensusMethod>();
+
+// Add Tool Adapters
+builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();
+builder.Services.AddScoped<IToolAdapter, WeightedScoringAdapter>();
+
+// Add Agent Driver (Echo driver as default; replace with SemanticKernelAgentDriver when OpenAI is configured)
+builder.Services.AddScoped<IAgentDriver, EchoAgentDriver>();
+
+// Add Session Orchestrator
+builder.Services.AddScoped<ISessionOrchestrator, SessionOrchestratorService>();
+
+// Add health check
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Apply database migrations automatically on startup
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
 }
+
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Deepr API v1");
+    c.RoutePrefix = string.Empty; // Serve at root
+});
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
