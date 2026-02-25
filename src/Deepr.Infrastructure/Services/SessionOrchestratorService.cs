@@ -50,7 +50,7 @@ public class SessionOrchestratorService : ISessionOrchestrator
         var roundNumber = session.CurrentRoundNumber + 1;
         var round = new SessionRound(session.Id, roundNumber, fullPrompt);
 
-        foreach (var agent in council.Agents)
+        foreach (var agent in council.Agents.Where(a => a.Role != Role.Observer))
         {
             if (!await _agentDriver.IsAgentAvailableAsync(agent.AgentId, cancellationToken))
                 continue;

@@ -1,6 +1,6 @@
 # deepr — Ultimate Decision Making Assistant
 
-**deepr** is a structured group decision-making API that orchestrates multi-agent councils using proven decision methods (Delphi, NGT, Brainstorming, Consensus Building, ADKAR) and analytical tools (SWOT, PESTLE, Weighted Scoring). It supports both AI agents (via [Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)) and human participants.
+**deepr** is a structured group decision-making API that orchestrates multi-agent councils using proven decision methods (Delphi, NGT, Brainstorming, Consensus Building, ADKAR, Weighted Deliberation) and analytical tools (SWOT, PESTLE, Weighted Scoring). It supports both AI agents (via [Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)) and human participants.
 
 ## Screenshots
 
@@ -12,17 +12,29 @@
 
 ![Create Issue Form](https://github.com/user-attachments/assets/3a0d0ab1-2dc2-437c-ad43-cf9d2df1a083)
 
-### Web Client — Issue Detail (filled form)
+### Web Client — Create Council (all methods including Weighted Deliberation)
 
-![Issue Detail](https://github.com/user-attachments/assets/38c8d66a-a08a-4907-a594-ce9db02ac4f8)
+![Create Council — all methods](https://github.com/user-attachments/assets/ee4a0229-1212-436f-b2c5-7c72c1636016)
+
+### Web Client — Add Member with Custom AI Persona Prompt
+
+![Add Member — custom AI prompt per agent](https://github.com/user-attachments/assets/cdf8a324-980b-4416-af0e-23f7149f823c)
+
+### Web Client — Council with Roles (Moderator, Expert, Critic, Observer)
+
+![Council members with roles and custom prompts](https://github.com/user-attachments/assets/7361de87-9b31-460e-8b01-9bd22746a172)
+
+### Web Client — Voting Round with Structured Scores
+
+![Voting round — each member submits scores](https://github.com/user-attachments/assets/505521f0-e405-485a-8bb8-0408b92b1689)
+
+### Web Client — Decision Matrix Results (inline after voting)
+
+![Decision matrix table with weighted scores and ranking](https://github.com/user-attachments/assets/8e7a0b67-176d-4a1c-a0c2-465cc237dd0f)
 
 ### Web Client — Create Council with ADKAR & PESTLE
 
 ![Create Council — ADKAR and PESTLE selected](https://github.com/user-attachments/assets/7bea5274-9a2a-4afd-b450-2849f1da5ced)
-
-### Web Client — ADKAR Council with Active Session
-
-![ADKAR Council — PESTLE badge, member added, session active](https://github.com/user-attachments/assets/f99beea0-e884-4f3e-9939-c35920456510)
 
 ### Web Client — ADKAR Phase 1 (Awareness) Round Result
 
@@ -35,14 +47,6 @@
 ### Web Client — Export Decision Sheet button
 
 ![Export Decision Sheet](https://github.com/user-attachments/assets/14cb4607-7a39-4250-8021-b76498d53c71)
-
-### Web Client — Council with Members & Active Session
-
-![Council Session](https://github.com/user-attachments/assets/ce1af6a1-a26d-4b57-9f22-0315920d329c)
-
-### Web Client — Round Results
-
-![Round Results](https://github.com/user-attachments/assets/d4c9b006-0b2b-4584-89e3-44b273b39895)
 
 ### Swagger UI — REST API
 
@@ -69,6 +73,7 @@ Deepr.Web             → Blazor Server client app
 | `ConsensusBuilding` (4) | Structured agreement tracking | 2 |
 | `NGT` (1) | Nominal Group Technique — silent generation, sharing, clarification, voting | 4 |
 | `ADKAR` (5) | Change management — Awareness, Desire, Knowledge, Ability, Reinforcement | 5 |
+| `WeightedDeliberation` (6) | Moderator frames → Experts discuss → Vote → Weighted scoring matrix | 4 |
 
 ### Analytical Tools
 | Tool | Description |
@@ -78,12 +83,27 @@ Deepr.Web             → Blazor Server client app
 | `PESTLE` (5) | Political, Economic, Social, Technological, Legal, Environmental |
 
 ### Agent Roles
-| Role | Value | Description |
+| Role | Value | Description | Participates in voting |
+|---|---|---|---|
+| `Chairman` / Moderator | 0 | Frames the problem and leads discussion | ✅ |
+| `Expert` | 1 | Domain expert analysis and scoring | ✅ |
+| `Critic` | 2 | Challenges assumptions and scores | ✅ |
+| `Observer` | 3 | Watch-only — never contributes to rounds | ❌ |
+
+> **Observers are automatically silenced** — the orchestrator skips them in every round regardless of the chosen method.
+
+### Weighted Deliberation User Story
+
+> *A team of experts is presented with a complex problem. One person acts as Moderator, several become Commenters, and some are Observers. Each is an AI model with a specific system prompt persona. After structured discussion rounds, a vote takes place. Each voter scores options against weighted criteria. The system computes a weighted scoring matrix and ranks the options. Results are exported as a decision sheet.*
+
+| Round | Phase | Who participates |
 |---|---|---|
-| `Chairman` | 0 | Facilitates and summarises |
-| `Expert` | 1 | Domain expert analysis |
-| `Critic` | 2 | Challenges assumptions |
-| `Observer` | 3 | Silent observer |
+| 1 | **Moderator Framing** — presents options and criteria | All non-Observer members |
+| 2 | **Expert Discussion** — analyse strengths/weaknesses | All non-Observer members |
+| 3 | **Expert Deliberation** — refine positions | All non-Observer members |
+| 4 | **Voting** — score each option on each criterion (0–10) | All non-Observer members |
+
+After Round 4 the system automatically computes the **weighted scoring matrix** and ranks options by `Σ(weight × average_score)`. The result is displayed inline in the session panel and included in the exported decision sheet.
 
 ---
 

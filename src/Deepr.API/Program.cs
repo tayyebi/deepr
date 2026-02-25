@@ -57,6 +57,7 @@ builder.Services.AddScoped<IDecisionMethod, DelphiMethod>();
 builder.Services.AddScoped<IDecisionMethod, ConsensusMethod>();
 builder.Services.AddScoped<IDecisionMethod, NgtMethod>();
 builder.Services.AddScoped<IDecisionMethod, AdkarMethod>();
+builder.Services.AddScoped<IDecisionMethod, WeightedDeliberationMethod>();
 
 // Add Tool Adapters
 builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();

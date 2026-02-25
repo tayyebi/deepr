@@ -7,5 +7,6 @@ public enum MethodType
     Brainstorming,
     NominalGroupTechnique,
     ConsensusBuilding,
-    ADKAR
+    ADKAR,
+    WeightedDeliberation
 }

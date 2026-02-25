@@ -12,6 +12,9 @@ public class SessionExportService : ISessionExportService
 {
     private readonly ApplicationDbContext _db;
 
+    /// <summary>Neutral mid-point score used when no explicit score is available for an option/criterion pair.</summary>
+    private const double DefaultScore = 5.0;
+
     public SessionExportService(ApplicationDbContext db)
     {
         _db = db;
@@ -89,6 +92,10 @@ public class SessionExportService : ISessionExportService
             sb.AppendLine("---");
             sb.AppendLine();
         }
+
+        // Matrix results table (WeightedDeliberation)
+        if (council.SelectedMethod == MethodType.WeightedDeliberation)
+            AppendMatrixTable(sb, session.StatePayload);
 
         // Final state summary if available
         if (!string.IsNullOrWhiteSpace(session.StatePayload) && session.StatePayload != "{}")
@@ -192,6 +199,14 @@ public class SessionExportService : ISessionExportService
             4 => "Voting & Ranking",
             _ => $"Phase {roundNumber}"
         },
+        MethodType.WeightedDeliberation => roundNumber switch
+        {
+            1 => "Moderator Framing",
+            2 => "Expert Discussion",
+            3 => "Expert Deliberation",
+            4 => "Voting & Scoring",
+            _ => $"Phase {roundNumber}"
+        },
         MethodType.Delphi => roundNumber == 1 ? "Initial Assessment" : $"Refinement {roundNumber}",
         MethodType.ConsensusBuilding => roundNumber == 1 ? "Perspective Sharing" : "Agreement Tracking",
         MethodType.Brainstorming => "Idea Generation",
@@ -205,6 +220,7 @@ public class SessionExportService : ISessionExportService
         MethodType.Brainstorming => "Brainstorming",
         MethodType.ConsensusBuilding => "Consensus Building",
         MethodType.ADKAR => "ADKAR (Change Management)",
+        MethodType.WeightedDeliberation => "Weighted Deliberation (Discussion + Voting + Matrix)",
         _ => m.ToString()
     };
 
@@ -224,4 +240,71 @@ public class SessionExportService : ISessionExportService
 
     private static string TruncateLine(string s, int maxLen) =>
         s.Length <= maxLen ? s : s[..maxLen] + "…";
+
+    /// <summary>Renders the weighted scoring matrix from state payload as Markdown tables.</summary>
+    private static void AppendMatrixTable(StringBuilder sb, string statePayload)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(statePayload);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("matrix", out var matrix) || matrix.ValueKind != JsonValueKind.Object) return;
+            if (!matrix.TryGetProperty("ranking", out var rankElem)) return;
+            if (!matrix.TryGetProperty("criteria", out var criteriaElem)) return;
+            if (!matrix.TryGetProperty("averageScores", out var avgElem)) return;
+            if (!matrix.TryGetProperty("weightedScores", out var wsElem)) return;
+
+            var ranking = rankElem.EnumerateArray().Select(e => e.GetString() ?? "").Where(s => s.Length > 0).ToList();
+            var criteria = criteriaElem.EnumerateArray()
+                .Select(c => (Name: c.GetProperty("name").GetString() ?? "", Weight: c.GetProperty("weight").GetDouble()))
+                .Where(c => c.Name.Length > 0)
+                .ToList();
+
+            if (ranking.Count == 0 || criteria.Count == 0) return;
+
+            sb.AppendLine("## Decision Matrix Results");
+            sb.AppendLine();
+            sb.AppendLine("### Weighted Scoring Matrix");
+            sb.AppendLine();
+
+            // Header
+            sb.Append("| Option |");
+            foreach (var (name, weight) in criteria) sb.Append($" {name} ({weight:P0}) |");
+            sb.AppendLine(" **Weighted Score** |");
+
+            sb.Append("|---|");
+            foreach (var _ in criteria) sb.Append("---|");
+            sb.AppendLine("---|");
+
+            // Rows
+            foreach (var option in ranking)
+            {
+                sb.Append($"| {option} |");
+                foreach (var (name, _) in criteria)
+                {
+                    double score = DefaultScore;
+                    if (avgElem.TryGetProperty(option, out var optScores) &&
+                        optScores.TryGetProperty(name, out var scoreElem))
+                        score = scoreElem.GetDouble();
+                    sb.Append($" {score:F1} |");
+                }
+                double ws = wsElem.TryGetProperty(option, out var wsVal) ? wsVal.GetDouble() : 0;
+                sb.AppendLine($" **{ws:F2}** |");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("### Final Ranking");
+            sb.AppendLine();
+            for (int i = 0; i < ranking.Count; i++)
+            {
+                var opt = ranking[i];
+                double ws = wsElem.TryGetProperty(opt, out var wsVal) ? wsVal.GetDouble() : 0;
+                var recommended = i == 0 ? " ✅ **Recommended**" : "";
+                sb.AppendLine($"{i + 1}. **{opt}** — {ws:F2}{recommended}");
+            }
+            sb.AppendLine();
+        }
+        catch { }
+    }
 }
