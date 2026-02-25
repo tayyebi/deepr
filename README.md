@@ -32,6 +32,10 @@
 
 ![ADKAR all 5 phases completed](https://github.com/user-attachments/assets/f1effa43-9565-4a0d-8b8f-4144b38bb664)
 
+### Web Client — Export Decision Sheet button
+
+![Export Decision Sheet](https://github.com/user-attachments/assets/14cb4607-7a39-4250-8021-b76498d53c71)
+
 ### Web Client — Council with Members & Active Session
 
 ![Council Session](https://github.com/user-attachments/assets/ce1af6a1-a26d-4b57-9f22-0315920d329c)
@@ -327,6 +331,7 @@ Each council member can have a custom `systemPromptOverride` to specialise their
 | `GET` | `/api/sessions/{id}` | Get session status |
 | `POST` | `/api/sessions/{id}/execute-round` | Execute the next round |
 | `POST` | `/api/sessions/{id}/finalize` | Finalize and get result |
+| `GET` | `/api/sessions/{id}/export` | Export classified decision sheet (`.md`) |
 | `GET` | `/health` | Health check |
 
 Full interactive docs available at the Swagger UI root (`/`).

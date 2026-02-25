@@ -69,6 +69,9 @@ builder.Services.AddScoped<IAgentDriver, EchoAgentDriver>();
 // Add Session Orchestrator
 builder.Services.AddScoped<ISessionOrchestrator, SessionOrchestratorService>();
 
+// Add Session Export Service
+builder.Services.AddScoped<ISessionExportService, SessionExportService>();
+
 // Add health check
 builder.Services.AddHealthChecks();
 

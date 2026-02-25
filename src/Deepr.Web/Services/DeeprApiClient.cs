@@ -69,4 +69,16 @@ public class DeeprApiClient
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }
+
+    public async Task<(byte[] Content, string FileName, string ContentType)> ExportDecisionSheetAsync(Guid sessionId)
+    {
+        var response = await _http.GetAsync($"api/sessions/{sessionId}/export");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsByteArrayAsync();
+        var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+            ?? response.Content.Headers.ContentDisposition?.FileName
+            ?? $"decision-sheet-{sessionId}.md";
+        var contentType = response.Content.Headers.ContentType?.MediaType ?? "text/markdown";
+        return (content, fileName, contentType);
+    }
 }

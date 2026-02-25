@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject DeeprApiClient Api
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Council — Deepr</PageTitle>
 
@@ -159,6 +160,11 @@ else
                             <div class="alert alert-danger small">@_roundError</div>
                         }
 
+                        @if (_exportError is not null)
+                        {
+                            <div class="alert alert-danger small">@_exportError</div>
+                        }
+
                         <div class="d-flex gap-2 mt-2">
                             @if (_session.Status == 0)
                             {
@@ -167,6 +173,12 @@ else
                                 </button>
                                 <button class="btn btn-outline-secondary" @onclick="FinalizeSession" disabled="@_finalizing">
                                     @(_finalizing ? "Finalizing..." : "✅ Finalize")
+                                </button>
+                            }
+                            @if (_session.Status == 2 || _rounds.Any())
+                            {
+                                <button class="btn btn-outline-success" @onclick="ExportDecisionSheet" disabled="@_exporting">
+                                    @(_exporting ? "Exporting..." : "📥 Export Decision Sheet")
                                 </button>
                             }
                         </div>
@@ -203,6 +215,9 @@ else
     private bool _executingRound;
     private bool _finalizing;
     private string? _roundError;
+
+    private bool _exporting;
+    private string? _exportError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -301,6 +316,27 @@ else
         finally
         {
             _finalizing = false;
+        }
+    }
+
+    private async Task ExportDecisionSheet()
+    {
+        if (_session is null) return;
+        _exporting = true;
+        _exportError = null;
+        try
+        {
+            var (content, fileName, contentType) = await Api.ExportDecisionSheetAsync(_session.Id);
+            var base64 = Convert.ToBase64String(content);
+            await JS.InvokeVoidAsync("deepr.downloadFile", fileName, base64, contentType);
+        }
+        catch (Exception ex)
+        {
+            _exportError = ex.Message;
+        }
+        finally
+        {
+            _exporting = false;
         }
     }
 
