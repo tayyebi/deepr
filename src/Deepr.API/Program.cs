@@ -58,6 +58,11 @@ builder.Services.AddScoped<IDecisionMethod, ConsensusMethod>();
 builder.Services.AddScoped<IDecisionMethod, NgtMethod>();
 builder.Services.AddScoped<IDecisionMethod, AdkarMethod>();
 builder.Services.AddScoped<IDecisionMethod, WeightedDeliberationMethod>();
+builder.Services.AddScoped<IDecisionMethod, AhpMethod>();
+builder.Services.AddScoped<IDecisionMethod, ElectreMethod>();
+builder.Services.AddScoped<IDecisionMethod, TopsisMethod>();
+builder.Services.AddScoped<IDecisionMethod, PrometheeMethod>();
+builder.Services.AddScoped<IDecisionMethod, GreyTheoryMethod>();
 
 // Add Tool Adapters
 builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();

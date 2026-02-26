@@ -8,5 +8,10 @@ public enum MethodType
     NominalGroupTechnique,
     ConsensusBuilding,
     ADKAR,
-    WeightedDeliberation
+    WeightedDeliberation,
+    AHP,
+    ELECTRE,
+    TOPSIS,
+    PROMETHEE,
+    GreyTheory
 }
