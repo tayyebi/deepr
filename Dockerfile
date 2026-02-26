@@ -8,6 +8,7 @@ COPY ["src/Deepr.Domain/Deepr.Domain.csproj", "src/Deepr.Domain/"]
 COPY ["src/Deepr.Application/Deepr.Application.csproj", "src/Deepr.Application/"]
 COPY ["src/Deepr.Infrastructure/Deepr.Infrastructure.csproj", "src/Deepr.Infrastructure/"]
 COPY ["src/Deepr.API/Deepr.API.csproj", "src/Deepr.API/"]
+COPY ["src/Deepr.Web/Deepr.Web.csproj", "src/Deepr.Web/"]
 
 # Restore dependencies
 RUN dotnet restore "Deepr.sln"
