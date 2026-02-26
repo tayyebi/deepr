@@ -81,4 +81,12 @@ public class DeeprApiClient
         var contentType = response.Content.Headers.ContentType?.MediaType ?? "text/markdown";
         return (content, fileName, contentType);
     }
+
+    // MCDA (standalone — no AI or session required)
+    public async Task<McdaResultModel?> RunMcdaAsync(string method, McdaInputModel input)
+    {
+        var response = await _http.PostAsJsonAsync($"api/mcda/{method}", input);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<McdaResultModel>();
+    }
 }

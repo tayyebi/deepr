@@ -58,3 +58,30 @@ public class ContributionDto
     public string RawContent { get; set; } = string.Empty;
     public string StructuredData { get; set; } = string.Empty;
 }
+
+// ─── MCDA standalone module ────────────────────────────────────────────────
+
+/// <summary>A single criterion for a standalone MCDA computation.</summary>
+public class McdaCriterionModel
+{
+    public string Name { get; set; } = string.Empty;
+    public double Weight { get; set; } = 1.0;
+    public bool IsBenefit { get; set; } = true;
+}
+
+/// <summary>Input payload for a standalone MCDA computation.</summary>
+public class McdaInputModel
+{
+    public List<string> Options { get; set; } = new();
+    public List<McdaCriterionModel> Criteria { get; set; } = new();
+    public Dictionary<string, Dictionary<string, double>> Scores { get; set; } = new();
+}
+
+/// <summary>Result returned by the standalone MCDA endpoints.</summary>
+public class McdaResultModel
+{
+    public string Method { get; set; } = string.Empty;
+    public List<string> Ranking { get; set; } = new();
+    public Dictionary<string, double> Scores { get; set; } = new();
+    public string Summary { get; set; } = string.Empty;
+}

@@ -1,0 +1,357 @@
+@page "/mcda"
+@rendermode InteractiveServer
+@inject DeeprApiClient Api
+
+<PageTitle>MCDA Calculator — Deepr</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1>📊 MCDA Calculator</h1>
+        <p class="text-muted mb-0">Multi-Criteria Decision Analysis — no AI or session required.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    @* ── Left column: inputs ──────────────────────────────────────────────── *@
+    <div class="col-lg-5">
+
+        @* 1 – Select method *@
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">1 · Select Method</div>
+            <div class="card-body pb-2">
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="radio" name="mcdaMethod" id="m_ahp"
+                           checked="@(_selectedMethod == "ahp")" @onchange="@(() => SelectMethod("ahp"))" />
+                    <label class="form-check-label" for="m_ahp">
+                        <strong>AHP</strong> <span class="text-muted small">— Analytic Hierarchy Process (Saaty 1–9)</span>
+                    </label>
+                </div>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="radio" name="mcdaMethod" id="m_electre"
+                           checked="@(_selectedMethod == "electre")" @onchange="@(() => SelectMethod("electre"))" />
+                    <label class="form-check-label" for="m_electre">
+                        <strong>ELECTRE</strong> <span class="text-muted small">— concordance/discordance outranking</span>
+                    </label>
+                </div>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="radio" name="mcdaMethod" id="m_topsis"
+                           checked="@(_selectedMethod == "topsis")" @onchange="@(() => SelectMethod("topsis"))" />
+                    <label class="form-check-label" for="m_topsis">
+                        <strong>TOPSIS</strong> <span class="text-muted small">— closeness to ideal solution</span>
+                    </label>
+                </div>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="radio" name="mcdaMethod" id="m_promethee"
+                           checked="@(_selectedMethod == "promethee")" @onchange="@(() => SelectMethod("promethee"))" />
+                    <label class="form-check-label" for="m_promethee">
+                        <strong>PROMETHEE II</strong> <span class="text-muted small">— net outranking flow</span>
+                    </label>
+                </div>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="radio" name="mcdaMethod" id="m_grey"
+                           checked="@(_selectedMethod == "grey-theory")" @onchange="@(() => SelectMethod("grey-theory"))" />
+                    <label class="form-check-label" for="m_grey">
+                        <strong>Grey Theory</strong> <span class="text-muted small">— Grey Relational Analysis (GRA)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        @* 2 – Options *@
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">2 · Options / Alternatives</div>
+            <div class="card-body">
+                @for (int i = 0; i < _options.Count; i++)
+                {
+                    int idx = i;
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">@(idx + 1)</span>
+                        <input type="text" class="form-control" placeholder="Option name"
+                               value="@_options[idx]"
+                               @onchange="@(e => UpdateOption(idx, e.Value?.ToString() ?? string.Empty))" />
+                        <button class="btn btn-outline-danger" type="button"
+                                @onclick="@(() => RemoveOption(idx))"
+                                disabled="@(_options.Count <= 2)">✕</button>
+                    </div>
+                }
+                <button class="btn btn-sm btn-outline-primary" @onclick="AddOption">+ Add Option</button>
+            </div>
+        </div>
+
+        @* 3 – Criteria *@
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">3 · Criteria &amp; Weights</div>
+            <div class="card-body">
+                <div class="row gx-1 mb-1 text-muted small fw-semibold">
+                    <div class="col-5">Name</div>
+                    <div class="col-3">Weight</div>
+                    @if (_selectedMethod == "topsis")
+                    {
+                        <div class="col-3">Type</div>
+                    }
+                </div>
+                @for (int i = 0; i < _criteria.Count; i++)
+                {
+                    int idx = i;
+                    <div class="row gx-1 mb-2 align-items-center">
+                        <div class="col-5">
+                            <input type="text" class="form-control form-control-sm" placeholder="Criterion"
+                                   value="@_criteria[idx].Name"
+                                   @onchange="@(e => SetCriterionName(idx, e.Value?.ToString() ?? string.Empty))" />
+                        </div>
+                        <div class="col-3">
+                            <input type="number" class="form-control form-control-sm" min="0.01" step="0.1"
+                                   value="@_criteria[idx].Weight"
+                                   @onchange="@(e => SetCriterionWeight(idx, e.Value?.ToString()))" />
+                        </div>
+                        @if (_selectedMethod == "topsis")
+                        {
+                            <div class="col-3">
+                                <select class="form-select form-select-sm"
+                                        value="@(_criteria[idx].IsBenefit ? "benefit" : "cost")"
+                                        @onchange="@(e => SetCriterionBenefit(idx, e.Value?.ToString()))">
+                                    <option value="benefit">Benefit ↑</option>
+                                    <option value="cost">Cost ↓</option>
+                                </select>
+                            </div>
+                        }
+                        <div class="col-1">
+                            <button class="btn btn-sm btn-outline-danger"
+                                    @onclick="@(() => RemoveCriterion(idx))"
+                                    disabled="@(_criteria.Count <= 1)">✕</button>
+                        </div>
+                    </div>
+                }
+                <button class="btn btn-sm btn-outline-primary" @onclick="AddCriterion">+ Add Criterion</button>
+            </div>
+        </div>
+
+        @* 4 – Score matrix *@
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">
+                4 · Score Matrix
+                <span class="text-muted small ms-1 fw-normal">
+                    @(_selectedMethod == "ahp" ? "(1–9 Saaty scale)" : "(0–10 scale)")
+                </span>
+            </div>
+            <div class="card-body" style="overflow-x:auto;">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Option</th>
+                            @foreach (var c in _criteria)
+                            {
+                                <th class="text-center">@(string.IsNullOrWhiteSpace(c.Name) ? "—" : c.Name)</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var opt in _options)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-nowrap">@(string.IsNullOrWhiteSpace(opt) ? "—" : opt)</td>
+                                @foreach (var c in _criteria)
+                                {
+                                    string o = opt;
+                                    string cn = c.Name;
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm text-center"
+                                               style="min-width:60px"
+                                               min="@(_selectedMethod == "ahp" ? "1" : "0")"
+                                               max="@(_selectedMethod == "ahp" ? "9" : "10")"
+                                               step="0.5"
+                                               value="@GetScore(o, cn)"
+                                               @onchange="@(e => SetScore(o, cn, e.Value?.ToString()))" />
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (_validationError is not null)
+        {
+            <div class="alert alert-danger">@_validationError</div>
+        }
+
+        <button class="btn btn-primary w-100" @onclick="Run" disabled="@_running">
+            @(_running ? "Computing…" : "▶ Run Analysis")
+        </button>
+    </div>
+
+    @* ── Right column: results ────────────────────────────────────────────── *@
+    <div class="col-lg-7">
+        @if (_result is null && !_running && _apiError is null)
+        {
+            <div class="alert alert-light border text-center py-5 text-muted">
+                <div style="font-size:3rem">📊</div>
+                <p class="mb-0">Fill in the inputs on the left and click <strong>Run Analysis</strong> to see results.</p>
+            </div>
+        }
+        else if (_running)
+        {
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p>Computing…</p>
+            </div>
+        }
+        else if (_result is not null)
+        {
+            @* Ranking *@
+            <div class="card mb-3 border-success">
+                <div class="card-header bg-success text-white fw-semibold">
+                    🏆 Results — @_result.Method.ToUpperInvariant()
+                </div>
+                <div class="card-body">
+                    @for (int i = 0; i < _result.Ranking.Count; i++)
+                    {
+                        string opt = _result.Ranking[i];
+                        double score = _result.Scores.TryGetValue(opt, out var s) ? s : 0;
+                        string medal = i switch { 0 => "🥇", 1 => "🥈", 2 => "🥉", _ => $"{i + 1}." };
+                        double maxAbs = _result.Scores.Values.Any() ? _result.Scores.Values.Max(v => Math.Abs(v)) : 1;
+                        double barPct = maxAbs > 0 ? Math.Abs(score) / maxAbs * 100 : 0;
+                        string barClass = i == 0 ? "bg-success" : (i == 1 ? "bg-info" : "bg-secondary");
+                        string barWidth = barPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold">@medal @opt</span>
+                                <span class="badge bg-primary">@score.ToString("F4")</span>
+                            </div>
+                            <div class="progress" style="height:8px">
+                                <div class="progress-bar @barClass" style="width:@(barWidth)%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Markdown summary *@
+            @if (!string.IsNullOrWhiteSpace(_result.Summary))
+            {
+                <div class="card mb-3">
+                    <div class="card-header fw-semibold">📋 Analysis Detail</div>
+                    <div class="card-body" style="overflow-x:auto;">
+                        <pre class="mb-0" style="white-space:pre-wrap;font-size:.82rem">@_result.Summary</pre>
+                    </div>
+                </div>
+            }
+        }
+
+        @if (_apiError is not null)
+        {
+            <div class="alert alert-danger mt-3">@_apiError</div>
+        }
+    </div>
+</div>
+
+@code {
+    // ── State ────────────────────────────────────────────────────────────────
+    private string _selectedMethod = "topsis";
+
+    private List<string> _options = new() { "Option A", "Option B", "Option C" };
+
+    private List<McdaCriterionModel> _criteria = new()
+    {
+        new() { Name = "Cost",    Weight = 0.3, IsBenefit = false },
+        new() { Name = "Quality", Weight = 0.7, IsBenefit = true  }
+    };
+
+    private readonly Dictionary<string, Dictionary<string, double>> _scoreMatrix = new();
+
+    private bool _running;
+    private string? _validationError;
+    private string? _apiError;
+    private McdaResultModel? _result;
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private void SelectMethod(string method) => _selectedMethod = method;
+
+    private double GetScore(string opt, string crit)
+    {
+        if (_scoreMatrix.TryGetValue(opt, out var row) && row.TryGetValue(crit, out var v))
+            return v;
+        return 5.0;
+    }
+
+    private void SetScore(string opt, string crit, string? raw)
+    {
+        if (!double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                             System.Globalization.CultureInfo.InvariantCulture, out var v)) return;
+        if (!_scoreMatrix.ContainsKey(opt))
+            _scoreMatrix[opt] = new();
+        _scoreMatrix[opt][crit] = v;
+    }
+
+    private void UpdateOption(int idx, string val) => _options[idx] = val;
+    private void AddOption() => _options.Add($"Option {(char)('A' + _options.Count % 26)}");
+    private void RemoveOption(int idx) { if (_options.Count > 2) _options.RemoveAt(idx); }
+
+    private void SetCriterionName(int idx, string val) => _criteria[idx].Name = val;
+
+    private void SetCriterionWeight(int idx, string? raw)
+    {
+        if (double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var w))
+            _criteria[idx].Weight = w;
+    }
+
+    private void SetCriterionBenefit(int idx, string? val) =>
+        _criteria[idx].IsBenefit = val != "cost";
+
+    private void AddCriterion() =>
+        _criteria.Add(new() { Name = $"Criterion {_criteria.Count + 1}", Weight = 1.0, IsBenefit = true });
+
+    private void RemoveCriterion(int idx) { if (_criteria.Count > 1) _criteria.RemoveAt(idx); }
+
+    // ── Run ──────────────────────────────────────────────────────────────────
+
+    private async Task Run()
+    {
+        _validationError = null;
+        _apiError = null;
+        _result = null;
+
+        if (_options.Any(string.IsNullOrWhiteSpace))
+        { _validationError = "All option names must be filled in."; return; }
+        if (_criteria.Any(c => string.IsNullOrWhiteSpace(c.Name)))
+        { _validationError = "All criterion names must be filled in."; return; }
+        if (_options.Distinct().Count() != _options.Count)
+        { _validationError = "Option names must be unique."; return; }
+        if (_criteria.Select(c => c.Name).Distinct().Count() != _criteria.Count)
+        { _validationError = "Criterion names must be unique."; return; }
+
+        var input = new McdaInputModel
+        {
+            Options = _options.ToList(),
+            Criteria = _criteria.Select(c => new McdaCriterionModel
+            {
+                Name = c.Name,
+                Weight = c.Weight,
+                IsBenefit = c.IsBenefit
+            }).ToList(),
+            Scores = _options.ToDictionary(
+                o => o,
+                o => _criteria.ToDictionary(
+                    c => c.Name,
+                    c => GetScore(o, c.Name)))
+        };
+
+        _running = true;
+        try
+        {
+            _result = await Api.RunMcdaAsync(_selectedMethod, input);
+        }
+        catch (Exception ex)
+        {
+            _apiError = $"API error: {ex.Message}";
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+}
