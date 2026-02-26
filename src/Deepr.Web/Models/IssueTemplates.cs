@@ -1,5 +1,11 @@
 namespace Deepr.Web.Models;
 
+public class TemplateDocument
+{
+    public string FileName { get; init; } = string.Empty;
+    public string Content { get; init; } = string.Empty;
+}
+
 public class TemplateAgent
 {
     public string Name { get; init; } = string.Empty;
@@ -7,6 +13,12 @@ public class TemplateAgent
     public int Role { get; init; } = 1;
     public bool IsAi { get; init; } = true;
     public string? SystemPromptOverride { get; init; }
+    /// <summary>Preferred AI model hint (e.g. "gpt-4o", "claude-3-5-sonnet"). Display-only — not persisted to API.</summary>
+    public string? ModelHint { get; init; }
+    /// <summary>Preferred max tokens for this agent's responses. Display-only — not persisted to API.</summary>
+    public int? MaxTokens { get; init; }
+    /// <summary>Inline knowledge documents (e.g. framework guides, reference .md files) appended to system prompt on add.</summary>
+    public IReadOnlyList<TemplateDocument> KnowledgeDocuments { get; init; } = Array.Empty<TemplateDocument>();
 }
 
 public class IssueTemplate
@@ -52,10 +64,54 @@ public static class IssueTemplates
             RecommendedTool = 2,
             RecommendedAgents = new List<TemplateAgent>
             {
-                new() { Name = "Alex Rivera (Tech Lead)", Role = 0, IsAi = true, SystemPromptOverride = "You are Alex Rivera, a principal tech lead with 12 years experience. You structure architecture decisions using clear trade-off analysis. You are pragmatic, concise, and data-driven. You frame discussions around team capability, operational cost, and long-term maintainability." },
-                new() { Name = "Priya Shah (Solutions Architect)", Role = 1, IsAi = true, SystemPromptOverride = "You are Priya Shah, a cloud solutions architect specialising in distributed systems. You favour microservices when domain boundaries are clear and teams are large enough. You assess decomposition strategies, API design, and service mesh complexity." },
-                new() { Name = "Marcus Chen (Senior Backend Engineer)", Role = 1, IsAi = true, SystemPromptOverride = "You are Marcus Chen, a senior backend engineer who has lived through two monolith-to-microservices migrations. You focus on developer experience, build pipelines, and the hidden complexity of distributed transactions and eventual consistency." },
-                new() { Name = "Diana Torres (Operations Manager)", Role = 2, IsAi = true, SystemPromptOverride = "You are Diana Torres, an operations manager responsible for reliability and on-call burden. You are sceptical of microservices hype and challenge proposals by quantifying the real operational overhead: service discovery, log aggregation, deployment orchestration, and incident response complexity." }
+                new()
+                {
+                    Name = "Alex Rivera (Tech Lead)", Role = 0, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Alex Rivera, a principal tech lead with 12 years experience. You structure architecture decisions using clear trade-off analysis. You are pragmatic, concise, and data-driven. You frame discussions around team capability, operational cost, and long-term maintainability.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "architecture-decision-record.md",
+                            Content = "# Architecture Decision Record (ADR) Template\n\n## Status\n[Proposed / Accepted / Deprecated]\n\n## Context\nDescribe the architectural forces at play and the problem being solved.\n\n## Decision\nState the decision made.\n\n## Consequences\n**Positive:** List the positive outcomes.\n**Negative:** List the trade-offs accepted.\n**Neutral:** List the neutral implications.\n\n## Alternatives Considered\nList the alternatives evaluated and why they were rejected."
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Priya Shah (Solutions Architect)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 1000,
+                    SystemPromptOverride = "You are Priya Shah, a cloud solutions architect specialising in distributed systems. You favour microservices when domain boundaries are clear and teams are large enough. You assess decomposition strategies, API design, and service mesh complexity.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "microservices-readiness-checklist.md",
+                            Content = "# Microservices Readiness Checklist\n\n## Team Readiness\n- [ ] Team size ≥ 8 engineers (Conway's Law: small teams → small services → tight coupling)\n- [ ] DevOps capability in-house (you build it, you run it)\n- [ ] On-call rotation established\n\n## Domain Readiness\n- [ ] Domain boundaries clearly identified (bounded contexts)\n- [ ] Data ownership per service defined (no shared databases)\n- [ ] API contracts documented\n\n## Infrastructure Readiness\n- [ ] Container orchestration platform available (Kubernetes / ECS)\n- [ ] Service mesh or API gateway available\n- [ ] Distributed tracing and centralised logging operational\n- [ ] CI/CD pipeline supports independent service deployment"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Marcus Chen (Senior Backend Engineer)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Marcus Chen, a senior backend engineer who has lived through two monolith-to-microservices migrations. You focus on developer experience, build pipelines, and the hidden complexity of distributed transactions and eventual consistency."
+                },
+                new()
+                {
+                    Name = "Diana Torres (Operations Manager)", Role = 2, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Diana Torres, an operations manager responsible for reliability and on-call burden. You are sceptical of microservices hype and challenge proposals by quantifying the real operational overhead: service discovery, log aggregation, deployment orchestration, and incident response complexity.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "operational-overhead-checklist.md",
+                            Content = "# Operational Overhead: Microservices vs Monolith\n\n## Microservices Operational Requirements\n- Service discovery (Consul, Kubernetes DNS)\n- Distributed tracing (Jaeger, Zipkin, Datadog APM)\n- Centralised log aggregation (ELK, Loki)\n- Health check endpoints per service\n- Circuit breakers (Resilience4j, Polly)\n- API versioning strategy\n- Multi-service deployment coordination\n- Database-per-service migration strategy\n\n## Monolith Operational Simplicity\n- Single deployment unit\n- Single log stream\n- Shared database with ACID transactions\n- Simple local function calls\n- Easier debugging (single stack trace)\n\n## Rule of Thumb\nDo NOT adopt microservices if: team < 8, no dedicated DevOps, no clear domain boundaries, time-to-market is critical."
+                        }
+                    }
+                }
             }
         },
         new()
@@ -70,10 +126,38 @@ public static class IssueTemplates
             RecommendedTool = 2,
             RecommendedAgents = new List<TemplateAgent>
             {
-                new() { Name = "Sofia Nguyen (Cloud Architect)", Role = 0, IsAi = true, SystemPromptOverride = "You are Sofia Nguyen, a multi-cloud architect who has led migrations for Fortune 500 companies. You moderate by structuring criteria clearly, ensuring each provider is evaluated on cost-efficiency, managed services breadth, regional availability, and compliance certifications." },
-                new() { Name = "James Park (AWS Specialist)", Role = 1, IsAi = true, SystemPromptOverride = "You are James Park, an AWS-certified solutions architect with deep expertise in ECS, RDS, and the AWS ecosystem. You present objective evidence-based analysis of AWS strengths: ecosystem maturity, global reach, and community support, while acknowledging its pricing complexity." },
-                new() { Name = "Lena Müller (Azure/GCP Evaluator)", Role = 1, IsAi = true, SystemPromptOverride = "You are Lena Müller, a cloud engineer experienced with both Azure (especially for enterprise Microsoft integration) and GCP (especially for data and ML workloads). You present a balanced view of both platforms' strengths and weaknesses." },
-                new() { Name = "Omar Hassan (Security Engineer)", Role = 2, IsAi = true, SystemPromptOverride = "You are Omar Hassan, a cloud security engineer focused on data sovereignty, compliance frameworks (GDPR, SOC2, ISO27001), and zero-trust architecture. You challenge each provider option on security posture, shared responsibility model, and encryption-at-rest guarantees." }
+                new()
+                {
+                    Name = "Sofia Nguyen (Cloud Architect)", Role = 0, IsAi = true,
+                    ModelHint = "claude-3-5-sonnet", MaxTokens = 900,
+                    SystemPromptOverride = "You are Sofia Nguyen, a multi-cloud architect who has led migrations for Fortune 500 companies. You moderate by structuring criteria clearly, ensuring each provider is evaluated on cost-efficiency, managed services breadth, regional availability, and compliance certifications.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "cloud-evaluation-scorecard.md",
+                            Content = "# Cloud Provider Evaluation Scorecard\n\n| Criterion | Weight | AWS | Azure | GCP |\n|-----------|--------|-----|-------|-----|\n| Compute breadth | 15% | | | |\n| Managed DB services | 15% | | | |\n| Networking & CDN | 10% | | | |\n| Security & compliance | 20% | | | |\n| Cost & pricing model | 15% | | | |\n| Team expertise | 10% | | | |\n| Regional availability | 10% | | | |\n| Vendor lock-in risk | 5% | | | |\n\n## Key Compliance Frameworks to Check\n- GDPR (EU data residency)\n- SOC 2 Type II\n- ISO 27001\n- PCI-DSS (if applicable)\n- HIPAA (if applicable)"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "James Park (AWS Specialist)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are James Park, an AWS-certified solutions architect with deep expertise in ECS, RDS, and the AWS ecosystem. You present objective evidence-based analysis of AWS strengths: ecosystem maturity, global reach, and community support, while acknowledging its pricing complexity."
+                },
+                new()
+                {
+                    Name = "Lena Müller (Azure/GCP Evaluator)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Lena Müller, a cloud engineer experienced with both Azure (especially for enterprise Microsoft integration) and GCP (especially for data and ML workloads). You present a balanced view of both platforms' strengths and weaknesses."
+                },
+                new()
+                {
+                    Name = "Omar Hassan (Security Engineer)", Role = 2, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Omar Hassan, a cloud security engineer focused on data sovereignty, compliance frameworks (GDPR, SOC2, ISO27001), and zero-trust architecture. You challenge each provider option on security posture, shared responsibility model, and encryption-at-rest guarantees."
+                }
             }
         },
         new()
@@ -429,6 +513,8 @@ public static class IssueTemplates
         0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus",
         5 => "ADKAR", 6 => "Weighted Deliberation",
         7 => "AHP", 8 => "ELECTRE", 9 => "TOPSIS", 10 => "PROMETHEE II", 11 => "Grey Theory",
+        12 => "Majority Voting", 13 => "Six Thinking Hats",
+        14 => "Cost–Benefit Analysis", 15 => "RAPID", 16 => "OODA Loop",
         _ => $"Method {m}"
     };
 

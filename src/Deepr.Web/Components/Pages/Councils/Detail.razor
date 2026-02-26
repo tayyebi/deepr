@@ -124,6 +124,22 @@ else
                                         <span class="badge bg-light text-secondary border ms-1" title="@suggested.SystemPromptOverride">🧠</span>
                                     }
                                     <span class="ms-1 text-muted">@(suggested.IsAi ? "🤖" : "👤")</span>
+                                    @if (!string.IsNullOrEmpty(suggested.ModelHint))
+                                    {
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle ms-1" style="font-size:.65rem;" title="Preferred AI model">⚡ @suggested.ModelHint</span>
+                                    }
+                                    @if (suggested.MaxTokens.HasValue)
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1" style="font-size:.65rem;" title="Max tokens">🔢 @suggested.MaxTokens</span>
+                                    }
+                                    @if (suggested.KnowledgeDocuments.Count > 0)
+                                    {
+                                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle ms-1"
+                                              style="font-size:.65rem;"
+                                              title="@string.Join("\n", suggested.KnowledgeDocuments.Select(d => d.FileName))">
+                                            📄 @suggested.KnowledgeDocuments.Count doc(s)
+                                        </span>
+                                    }
                                 </div>
                                 <button class="btn btn-sm @(alreadyAdded ? "btn-outline-secondary" : "btn-outline-primary") py-0"
                                         disabled="@(alreadyAdded || _savingMember)"
@@ -577,7 +593,17 @@ else
         try
         {
             var agentId = Guid.NewGuid();
-            _council = await Api.AddMemberAsync(Id, agentId, agent.Name, agent.Role, agent.IsAi, agent.SystemPromptOverride);
+            // Append any knowledge documents to the system prompt so they are persisted with the agent
+            var prompt = agent.SystemPromptOverride;
+            if (agent.KnowledgeDocuments.Count > 0)
+            {
+                var docs = string.Join("\n\n", agent.KnowledgeDocuments.Select(d =>
+                    $"--- {d.FileName} ---\n{d.Content}"));
+                prompt = string.IsNullOrEmpty(prompt)
+                    ? docs
+                    : $"{prompt}\n\n## Knowledge Base\n{docs}";
+            }
+            _council = await Api.AddMemberAsync(Id, agentId, agent.Name, agent.Role, agent.IsAi, prompt);
         }
         catch (Exception ex)
         {
@@ -706,6 +732,8 @@ else
         0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus",
         5 => "ADKAR", 6 => "Weighted Deliberation",
         7 => "AHP", 8 => "ELECTRE", 9 => "TOPSIS", 10 => "PROMETHEE II", 11 => "Grey Theory",
+        12 => "Majority Voting", 13 => "Six Thinking Hats",
+        14 => "Cost–Benefit Analysis", 15 => "RAPID", 16 => "OODA Loop",
         _ => $"Method {m}"
     };
     private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", 5 => "PESTLE", _ => $"Tool {t}" };

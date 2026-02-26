@@ -3,7 +3,6 @@
 @inject DeeprApiClient Api
 @inject NavigationManager Nav
 @using Deepr.Web.Models
-
 <PageTitle>@(_issue?.Title ?? "Issue") — Deepr</PageTitle>
 
 @if (_loading)
@@ -62,14 +61,25 @@ else
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Decision Method</label>
-                        <select class="form-select" @bind="_councilForm.Method">
-                            <option value="0">Delphi (3-round iterative)</option>
-                            <option value="1">NGT — Nominal Group Technique (4-round)</option>
-                            <option value="2" selected>Brainstorming (1-round free-form)</option>
-                            <option value="4">Consensus Building (2-round)</option>
-                            <option value="5">ADKAR — Change Management (5-round)</option>
-                            <option value="6">Weighted Deliberation — Discussion + Vote + Matrix (4-round)</option>
-                            <optgroup label="── MCDA Methods (feeds MCDA Analysis) ──">
+                        <select class="form-select" @bind="_councilForm.Method" @bind:after="OnMethodChanged">
+                            <optgroup label="── Group-Based ──">
+                                <option value="2">Brainstorming (1 round — free-form)</option>
+                                <option value="4">Consensus Building (2 rounds)</option>
+                                <option value="12">Majority Voting (2 rounds)</option>
+                                <option value="1">NGT — Nominal Group Technique (4 rounds)</option>
+                                <option value="0">Delphi (3 rounds — anonymous iteration)</option>
+                            </optgroup>
+                            <optgroup label="── Analytical / Structured ──">
+                                <option value="6">Weighted Deliberation — Discussion + Vote + Matrix (4 rounds)</option>
+                                <option value="13">Six Thinking Hats (6 rounds — de Bono)</option>
+                                <option value="14">Cost–Benefit Analysis (3 rounds)</option>
+                                <option value="15">RAPID — Recommend · Agree · Perform · Input · Decide (4 rounds)</option>
+                                <option value="16">OODA Loop — Observe · Orient · Decide · Act (4 rounds)</option>
+                            </optgroup>
+                            <optgroup label="── Change Management ──">
+                                <option value="5">ADKAR — Awareness · Desire · Knowledge · Ability · Reinforcement (5 rounds)</option>
+                            </optgroup>
+                            <optgroup label="── MCDA Methods (feeds MCDA Analysis tab) ──">
                                 <option value="7">AHP — Analytic Hierarchy Process (Saaty 1–9)</option>
                                 <option value="8">ELECTRE — Concordance/Discordance Outranking</option>
                                 <option value="9">TOPSIS — Closeness to Ideal Solution</option>
@@ -81,12 +91,56 @@ else
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Analytical Tool</label>
                         <select class="form-select" @bind="_councilForm.Tool">
-                            <option value="0" selected>SWOT Analysis</option>
-                            <option value="2">Weighted Scoring</option>
-                            <option value="5">PESTLE Analysis</option>
+                            <option value="0">SWOT Analysis — Strengths, Weaknesses, Opportunities, Threats</option>
+                            <option value="2">Weighted Scoring — criteria-based numeric scoring</option>
+                            <option value="5">PESTLE Analysis — Political, Economic, Social, Tech, Legal, Environmental</option>
                         </select>
                     </div>
                 </div>
+
+                @if (_activeMethodGuide is not null)
+                {
+                    <div class="card mt-3 border-0 bg-light">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span style="font-size:1.3rem;">@_activeMethodGuide.Emoji</span>
+                                <div>
+                                    <strong class="small">@_activeMethodGuide.Name</strong>
+                                    <span class="badge bg-secondary ms-1" style="font-size:.65rem;">@_activeMethodGuide.Category</span>
+                                    <span class="badge bg-primary ms-1" style="font-size:.65rem;">@_activeMethodGuide.Rounds round(s)</span>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-1"><em>@_activeMethodGuide.Tagline</em></p>
+                            <p class="small mb-2">@_activeMethodGuide.Description</p>
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <div class="small fw-semibold text-success">✅ Best for</div>
+                                    <div class="small text-muted">@_activeMethodGuide.BestFor</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="small fw-semibold text-danger">⚠️ Not ideal for</div>
+                                    <div class="small text-muted">@_activeMethodGuide.NotSuitableFor</div>
+                                </div>
+                            </div>
+                            @if (_activeMethodGuide.Tips.Length > 0)
+                            {
+                                <details class="small">
+                                    <summary class="text-muted" style="cursor:pointer;">💡 Tips &amp; guidance (@_activeMethodGuide.Tips.Length)</summary>
+                                    <ul class="mb-0 mt-1 ps-3">
+                                        @foreach (var tip in _activeMethodGuide.Tips)
+                                        {
+                                            <li>@tip</li>
+                                        }
+                                    </ul>
+                                </details>
+                            }
+                            <div class="mt-2 small text-muted">
+                                <strong>Rounds:</strong> @_activeMethodGuide.RoundsSummary
+                            </div>
+                        </div>
+                    </div>
+                }
+
                 @if (_councilError is not null)
                 {
                     <div class="alert alert-danger mt-3">@_councilError</div>
@@ -147,6 +201,7 @@ else
     private CouncilForm _councilForm = new();
 
     private IssueTemplate? _template;
+    private MethodGuide? _activeMethodGuide;
     private string? _appliedTemplateId = "~unset~";
 
     protected override async Task OnInitializedAsync()
@@ -180,6 +235,12 @@ else
                 _showCreateCouncil = true;
             }
         }
+        _activeMethodGuide = DecisionMethodGuides.FindById(_councilForm.Method);
+    }
+
+    private void OnMethodChanged()
+    {
+        _activeMethodGuide = DecisionMethodGuides.FindById(_councilForm.Method);
     }
 
     private async Task CreateCouncil()
