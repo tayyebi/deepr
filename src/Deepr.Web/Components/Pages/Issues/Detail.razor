@@ -51,6 +51,13 @@ else
                             <option value="4">Consensus Building (2-round)</option>
                             <option value="5">ADKAR — Change Management (5-round)</option>
                             <option value="6">Weighted Deliberation — Discussion + Vote + Matrix (4-round)</option>
+                            <optgroup label="── MCDA Methods (feeds MCDA Analysis) ──">
+                                <option value="7">AHP — Analytic Hierarchy Process (Saaty 1–9)</option>
+                                <option value="8">ELECTRE — Concordance/Discordance Outranking</option>
+                                <option value="9">TOPSIS — Closeness to Ideal Solution</option>
+                                <option value="10">PROMETHEE II — Net Outranking Flow</option>
+                                <option value="11">Grey Theory — Grey Relational Analysis</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -166,6 +173,11 @@ else
         4 => "Consensus",
         5 => "ADKAR",
         6 => "Weighted Deliberation",
+        7 => "AHP",
+        8 => "ELECTRE",
+        9 => "TOPSIS",
+        10 => "PROMETHEE II",
+        11 => "Grey Theory",
         _ => $"Method {m}"
     };
 
