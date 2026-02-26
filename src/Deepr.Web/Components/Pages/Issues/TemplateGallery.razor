@@ -41,7 +41,24 @@
                                 <span class="badge bg-light text-secondary border small">@template.Category</span>
                             </div>
                         </div>
-                        <p class="card-text text-muted small mb-0">@template.Description</p>
+                        <p class="card-text text-muted small mb-2">@template.Description</p>
+                        @if (template.Id != "blank")
+                        {
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle" style="font-size:.7rem;">
+                                    ⚙️ @IssueTemplates.MethodName(template.RecommendedMethod)
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle" style="font-size:.7rem;">
+                                    🔬 @IssueTemplates.ToolName(template.RecommendedTool)
+                                </span>
+                                @if (template.RecommendedAgents.Count > 0)
+                                {
+                                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle" style="font-size:.7rem;">
+                                        👥 @template.RecommendedAgents.Count agents
+                                    </span>
+                                }
+                            </div>
+                        }
                     </div>
                     <div class="card-footer bg-transparent border-top-0 pt-0">
                         <button class="btn btn-sm @(template.Id == "blank" ? "btn-outline-primary" : "btn-primary") w-100"
@@ -73,8 +90,6 @@
 @code {
     private void SelectTemplate(IssueTemplate template)
     {
-        var title = Uri.EscapeDataString(template.Title);
-        var context = Uri.EscapeDataString(template.ContextVector);
-        Nav.NavigateTo($"/issues/create?title={title}&context={context}");
+        Nav.NavigateTo($"/issues/create?templateId={Uri.EscapeDataString(template.Id)}");
     }
 }

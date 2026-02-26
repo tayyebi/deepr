@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject DeeprApiClient Api
 @inject NavigationManager Nav
+@using Deepr.Web.Models
 
 <PageTitle>@(_issue?.Title ?? "Issue") — Deepr</PageTitle>
 
@@ -28,6 +29,23 @@ else
             <p class="text-muted">@_issue.ContextVector</p>
         </div>
     </div>
+
+    @if (_template is not null && _template.Id != "blank")
+    {
+        <div class="alert alert-primary d-flex align-items-center gap-2 mb-3 py-2">
+            <span style="font-size:1.3rem;">@_template.Icon</span>
+            <div class="small">
+                <strong>Template suggests:</strong>
+                <span class="ms-1 badge bg-primary">@IssueTemplates.MethodName(_template.RecommendedMethod)</span>
+                <span class="ms-1 badge bg-secondary">@IssueTemplates.ToolName(_template.RecommendedTool)</span>
+                @if (_template.RecommendedAgents.Count > 0)
+                {
+                    <span class="ms-1 badge bg-success">@_template.RecommendedAgents.Count recommended agents</span>
+                }
+                <span class="ms-2 text-muted">— create the council below to continue.</span>
+            </div>
+        </div>
+    }
 
     <hr />
 
@@ -115,6 +133,9 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
 
+    [SupplyParameterFromQuery(Name = "templateId")]
+    public string? TemplateId { get; set; }
+
     private IssueDto? _issue;
     private List<CouncilDto> _councils = new();
     private bool _loading = true;
@@ -124,6 +145,9 @@ else
     private bool _savingCouncil;
     private string? _councilError;
     private CouncilForm _councilForm = new();
+
+    private IssueTemplate? _template;
+    private string? _appliedTemplateId = "~unset~";
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,6 +165,23 @@ else
         }
     }
 
+    protected override void OnParametersSet()
+    {
+        if (_appliedTemplateId == TemplateId) return;
+        _appliedTemplateId = TemplateId;
+
+        if (!string.IsNullOrEmpty(TemplateId))
+        {
+            _template = IssueTemplates.FindById(TemplateId);
+            if (_template is not null && _template.Id != "blank")
+            {
+                _councilForm.Method = _template.RecommendedMethod;
+                _councilForm.Tool = _template.RecommendedTool;
+                _showCreateCouncil = true;
+            }
+        }
+    }
+
     private async Task CreateCouncil()
     {
         _savingCouncil = true;
@@ -152,7 +193,10 @@ else
             {
                 _councils.Add(council);
                 _showCreateCouncil = false;
-                Nav.NavigateTo($"/councils/{council.Id}");
+                var dest = string.IsNullOrEmpty(TemplateId)
+                    ? $"/councils/{council.Id}"
+                    : $"/councils/{council.Id}?templateId={Uri.EscapeDataString(TemplateId)}";
+                Nav.NavigateTo(dest);
             }
         }
         catch (Exception ex)
@@ -195,3 +239,4 @@ else
         public int Tool { get; set; } = 0;
     }
 }
+

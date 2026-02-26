@@ -4,13 +4,21 @@
 
 ## Screenshots
 
-### Web Client — Template Gallery
+### Web Client — Template Gallery (with method, tool & agent badges)
 
-![Template Gallery](https://github.com/user-attachments/assets/2233476f-5b8c-481e-a0db-0e0412194464)
+![Template Gallery](https://github.com/user-attachments/assets/b6e3aa8a-3ac7-4e77-9eff-21017e23e37a)
 
-### Web Client — New Issue pre-filled from Template
+### Web Client — New Issue pre-filled from Template (with recommendation banner)
 
-![New Issue pre-filled from template](https://github.com/user-attachments/assets/8494e241-4169-46f4-b66c-f6a84c09a09a)
+![New Issue pre-filled from template](https://github.com/user-attachments/assets/5830812e-ac0b-4329-8de2-e469adde084a)
+
+### Web Client — Issue Detail with template-suggested council form (method + tool pre-selected)
+
+![Issue Detail — template council form pre-filled](https://github.com/user-attachments/assets/c5a711ab-6463-4127-81bb-9d5ae71a3d5a)
+
+### Web Client — Council Detail with suggested agents (one-click add, shows ✓ when added)
+
+![Council Detail — suggested agents added](https://github.com/user-attachments/assets/de4afa7c-9611-4bf3-8f46-03d5a48b2b78)
 
 ### Web Client — Dashboard
 
