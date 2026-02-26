@@ -1,4 +1,5 @@
 using Deepr.Application.DTOs;
+using Deepr.Application.Interfaces;
 using Deepr.Application.Sessions.Commands;
 using Deepr.Application.Sessions.Queries;
 using MediatR;
@@ -11,10 +12,12 @@ namespace Deepr.API.Controllers;
 public class SessionsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ISessionExportService _exportService;
 
-    public SessionsController(IMediator mediator)
+    public SessionsController(IMediator mediator, ISessionExportService exportService)
     {
         _mediator = mediator;
+        _exportService = exportService;
     }
 
     /// <summary>Gets a session by ID</summary>
@@ -76,6 +79,16 @@ public class SessionsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+    }
+    /// <summary>Exports a session as a classified Markdown decision sheet</summary>
+    [HttpGet("{id:guid}/export")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExportDecisionSheet(Guid id, CancellationToken cancellationToken)
+    {
+        var export = await _exportService.ExportDecisionSheetAsync(id, cancellationToken);
+        if (export == null) return NotFound();
+        return File(export.Content, export.ContentType, export.FileName);
     }
 }
 
