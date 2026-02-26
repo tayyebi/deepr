@@ -256,6 +256,211 @@ else
                                 </button>
                             }
                         </div>
+
+                        @* ── Step 8: MCDA Analysis ────────────────────────────── *@
+                        @if (_mcdaBridge is not null)
+                        {
+                            <div class="card mt-4 border-primary">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <span><strong>📊 Step 8 — MCDA Analysis</strong></span>
+                                    <button class="btn btn-sm @(_mcdaEditing ? "btn-warning" : "btn-light")"
+                                            @onclick="@(() => { _mcdaEditing = !_mcdaEditing; _mcdaResult = null; _mcdaError = null; })">
+                                        @(_mcdaEditing ? "🔒 Lock" : "🔓 Enable Editing")
+                                    </button>
+                                </div>
+                                <div class="card-body">
+
+                                    @* 8.1 Method *@
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-muted">8.1 · Method</label>
+                                        <select class="form-select form-select-sm" disabled="@(!_mcdaEditing)"
+                                                value="@_mcdaBridge.McdaMethod"
+                                                @onchange="@(e => SetMcdaMethod(e.Value?.ToString()))">
+                                            <option value="ahp">AHP — Analytic Hierarchy Process</option>
+                                            <option value="electre">ELECTRE — Concordance/Discordance</option>
+                                            <option value="topsis">TOPSIS — Closeness to Ideal</option>
+                                            <option value="promethee">PROMETHEE II — Net Flow</option>
+                                            <option value="grey-theory">Grey Theory — GRA</option>
+                                        </select>
+                                    </div>
+
+                                    @* 8.2 Options *@
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-muted">8.2 · Options</label>
+                                        @for (int i = 0; i < _mcdaBridge.Options.Count; i++)
+                                        {
+                                            int idx = i;
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text">@(idx + 1)</span>
+                                                <input type="text" class="form-control" value="@_mcdaBridge.Options[idx]"
+                                                       disabled="@(!_mcdaEditing)"
+                                                       @onchange="@(e => _mcdaBridge.Options[idx] = e.Value?.ToString() ?? string.Empty)" />
+                                                @if (_mcdaEditing)
+                                                {
+                                                    <button class="btn btn-outline-danger" type="button"
+                                                            @onclick="@(() => { if (_mcdaBridge.Options.Count > 2) _mcdaBridge.Options.RemoveAt(idx); })">✕</button>
+                                                }
+                                            </div>
+                                        }
+                                        @if (_mcdaEditing)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary mt-1"
+                                                    @onclick="@(() => _mcdaBridge.Options.Add("New Option"))">+ Add Option</button>
+                                        }
+                                    </div>
+
+                                    @* 8.3 Criteria & Weights *@
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-muted">8.3 · Criteria &amp; Weights</label>
+                                        <div class="row gx-1 mb-1 text-muted small fw-semibold">
+                                            <div class="col-5">Name</div>
+                                            <div class="col-3">Weight</div>
+                                            @if (_mcdaBridge.McdaMethod == "topsis")
+                                            {
+                                                <div class="col-3">Type</div>
+                                            }
+                                        </div>
+                                        @for (int i = 0; i < _mcdaBridge.Criteria.Count; i++)
+                                        {
+                                            int idx = i;
+                                            <div class="row gx-1 mb-1 align-items-center">
+                                                <div class="col-5">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                           value="@_mcdaBridge.Criteria[idx].Name"
+                                                           disabled="@(!_mcdaEditing)"
+                                                           @onchange="@(e => _mcdaBridge.Criteria[idx].Name = e.Value?.ToString() ?? string.Empty)" />
+                                                </div>
+                                                <div class="col-3">
+                                                    <input type="number" class="form-control form-control-sm" min="0.01" step="0.1"
+                                                           value="@_mcdaBridge.Criteria[idx].Weight"
+                                                           disabled="@(!_mcdaEditing)"
+                                                           @onchange="@(e => SetMcdaCriterionWeight(idx, e.Value?.ToString()))" />
+                                                </div>
+                                                @if (_mcdaBridge.McdaMethod == "topsis")
+                                                {
+                                                    <div class="col-3">
+                                                        <select class="form-select form-select-sm" disabled="@(!_mcdaEditing)"
+                                                                value="@(_mcdaBridge.Criteria[idx].IsBenefit ? "benefit" : "cost")"
+                                                                @onchange="@(e => _mcdaBridge.Criteria[idx].IsBenefit = e.Value?.ToString() != "cost")">
+                                                            <option value="benefit">Benefit ↑</option>
+                                                            <option value="cost">Cost ↓</option>
+                                                        </select>
+                                                    </div>
+                                                }
+                                                @if (_mcdaEditing)
+                                                {
+                                                    <div class="col-1">
+                                                        <button class="btn btn-sm btn-outline-danger"
+                                                                @onclick="@(() => { if (_mcdaBridge.Criteria.Count > 1) _mcdaBridge.Criteria.RemoveAt(idx); })">✕</button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        @if (_mcdaEditing)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary mt-1"
+                                                    @onclick="@(() => _mcdaBridge.Criteria.Add(new McdaCriterionModel { Name = "New Criterion", Weight = 1.0, IsBenefit = true }))">+ Add Criterion</button>
+                                        }
+                                    </div>
+
+                                    @* 8.4 Score Matrix *@
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-muted">
+                                            8.4 · Score Matrix
+                                            <span class="fw-normal">@(_mcdaBridge.McdaMethod == "ahp" ? "(1–9 Saaty)" : "(0–10)")</span>
+                                        </label>
+                                        <div style="overflow-x:auto;">
+                                            <table class="table table-sm table-bordered align-middle mb-0">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Option</th>
+                                                        @foreach (var c in _mcdaBridge.Criteria)
+                                                        {
+                                                            <th class="text-center small">@(string.IsNullOrWhiteSpace(c.Name) ? "—" : c.Name)</th>
+                                                        }
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var opt in _mcdaBridge.Options)
+                                                    {
+                                                        <tr>
+                                                            <td class="fw-semibold small text-nowrap">@opt</td>
+                                                            @foreach (var c in _mcdaBridge.Criteria)
+                                                            {
+                                                                string o2 = opt; string cn = c.Name;
+                                                                <td>
+                                                                    <input type="number" class="form-control form-control-sm text-center"
+                                                                           style="min-width:55px"
+                                                                           min="@(_mcdaBridge.McdaMethod == "ahp" ? "1" : "0")"
+                                                                           max="@(_mcdaBridge.McdaMethod == "ahp" ? "9" : "10")"
+                                                                           step="0.5" disabled="@(!_mcdaEditing)"
+                                                                           value="@GetBridgeScore(o2, cn)"
+                                                                           @onchange="@(e => SetBridgeScore(o2, cn, e.Value?.ToString()))" />
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    @if (_mcdaError is not null)
+                                    {
+                                        <div class="alert alert-danger small">@_mcdaError</div>
+                                    }
+
+                                    <button class="btn btn-primary" @onclick="RunMcda" disabled="@_mcdaRunning">
+                                        @(_mcdaRunning ? "Computing…" : "▶ Run MCDA Analysis")
+                                    </button>
+
+                                    @* Results *@
+                                    @if (_mcdaRunning)
+                                    {
+                                        <div class="text-center py-3 text-muted">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                            Computing…
+                                        </div>
+                                    }
+                                    else if (_mcdaResult is not null)
+                                    {
+                                        <div class="card mt-3 border-success">
+                                            <div class="card-header bg-success text-white py-1 small">
+                                                <strong>🏆 MCDA Ranking — @_mcdaResult.Method.ToUpperInvariant()</strong>
+                                            </div>
+                                            <div class="card-body py-2">
+                                                @for (int i = 0; i < _mcdaResult.Ranking.Count; i++)
+                                                {
+                                                    string rOpt = _mcdaResult.Ranking[i];
+                                                    double rScore = _mcdaResult.Scores.TryGetValue(rOpt, out var rs) ? rs : 0;
+                                                    string medal = i switch { 0 => "🥇", 1 => "🥈", 2 => "🥉", _ => $"{i + 1}." };
+                                                    double maxAbs = _mcdaResult.Scores.Values.Any() ? _mcdaResult.Scores.Values.Max(v => Math.Abs(v)) : 1;
+                                                    string barW = (maxAbs > 0 ? Math.Abs(rScore) / maxAbs * 100 : 0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                                                    string barCls = i == 0 ? "bg-success" : (i == 1 ? "bg-info" : "bg-secondary");
+                                                    <div class="mb-2">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <span class="small fw-semibold">@medal @rOpt</span>
+                                                            <span class="badge bg-primary">@rScore.ToString("F4")</span>
+                                                        </div>
+                                                        <div class="progress" style="height:6px">
+                                                            <div class="progress-bar @barCls" style="width:@(barW)%"></div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(_mcdaResult.Summary))
+                                                {
+                                                    <details class="mt-2">
+                                                        <summary class="small text-muted" style="cursor:pointer">📋 Show analysis detail</summary>
+                                                        <pre class="mt-2 small" style="white-space:pre-wrap;font-size:.78rem">@_mcdaResult.Summary</pre>
+                                                    </details>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
                     }
                 </div>
             </div>
@@ -294,6 +499,13 @@ else
     private string? _exportError;
 
     private MatrixDisplay? _matrix;
+
+    // ── MCDA bridge (Step 8) ─────────────────────────────────────────────────
+    private McdaBridgeState? _mcdaBridge;
+    private bool _mcdaEditing;
+    private bool _mcdaRunning;
+    private string? _mcdaError;
+    private McdaResultModel? _mcdaResult;
 
     protected override async Task OnInitializedAsync()
     {
@@ -343,6 +555,8 @@ else
             _rounds.Clear();
             _finalResult = null;
             _matrix = null;
+            _mcdaBridge = null;
+            _mcdaResult = null;
         }
         catch (Exception ex)
         {
@@ -366,6 +580,7 @@ else
                 _rounds.Add(round);
             _session = await Api.GetSessionAsync(_session.Id);
             RefreshMatrix();
+            RefreshMcdaBridge();
         }
         catch (Exception ex)
         {
@@ -387,6 +602,7 @@ else
             _finalResult = await Api.FinalizeSessionAsync(_session.Id);
             _session = await Api.GetSessionAsync(_session.Id);
             RefreshMatrix();
+            RefreshMcdaBridge();
         }
         catch (Exception ex)
         {
@@ -419,7 +635,13 @@ else
         }
     }
 
-    private static string MethodName(int m) => m switch { 0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus", 5 => "ADKAR", 6 => "Weighted Deliberation", _ => $"Method {m}" };
+    private static string MethodName(int m) => m switch
+    {
+        0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus",
+        5 => "ADKAR", 6 => "Weighted Deliberation",
+        7 => "AHP", 8 => "ELECTRE", 9 => "TOPSIS", 10 => "PROMETHEE II", 11 => "Grey Theory",
+        _ => $"Method {m}"
+    };
     private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", 5 => "PESTLE", _ => $"Tool {t}" };
     private static string RoleName(int r) => r switch { 0 => "Moderator", 1 => "Expert", 2 => "Critic", 3 => "Observer", _ => $"Role {r}" };
     private static string RoleBadgeClass(int r) => r switch { 0 => "bg-warning text-dark", 1 => "bg-info text-dark", 2 => "bg-danger", _ => "bg-secondary" };
@@ -479,5 +701,166 @@ else
         public int Role { get; set; } = 1;
         public bool IsAi { get; set; } = true;
         public string? SystemPromptOverride { get; set; }
+    }
+
+    // Neutral midpoint score used when session data doesn't supply a value
+    private const double DefaultNeutralScore = 5.0;
+
+    /// <summary>Derive which MCDA method slug to use based on the council's MethodType.</summary>
+    private string McdaMethodSlug(int councilMethod) => councilMethod switch
+    {
+        7 => "ahp",
+        8 => "electre",
+        9 => "topsis",
+        10 => "promethee",
+        11 => "grey-theory",
+        _ => "topsis"   // WeightedDeliberation and others default to TOPSIS
+    };
+
+    private void RefreshMcdaBridge()
+    {
+        _mcdaBridge = null;
+        _mcdaResult = null;
+        if (_council is null || _session is null) return;
+        if (string.IsNullOrEmpty(_session.StatePayload) || _session.StatePayload == "{}") return;
+
+        // Only show MCDA bridge for methods that produce a scoring matrix (6-11)
+        if (_council.SelectedMethod < 6) return;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(_session.StatePayload);
+            var root = doc.RootElement;
+
+            // Extract top-level options & criteria
+            if (!root.TryGetProperty("options", out var optEl) || optEl.ValueKind != JsonValueKind.Array) return;
+            if (!root.TryGetProperty("criteria", out var critEl) || critEl.ValueKind != JsonValueKind.Array) return;
+
+            var options = optEl.EnumerateArray()
+                .Select(e => e.GetString() ?? "").Where(s => s.Length > 0).ToList();
+            if (options.Count == 0) return;
+
+            var criteria = critEl.EnumerateArray().Select(c =>
+            {
+                var name = c.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                var weight = c.TryGetProperty("weight", out var w) ? w.GetDouble() : 1.0;
+                var isBenefit = !c.TryGetProperty("isBenefit", out var ib) || ib.GetBoolean(); // default true (benefit) when property absent
+                return new McdaCriterionModel { Name = name, Weight = weight, IsBenefit = isBenefit };
+            }).Where(c => c.Name.Length > 0).ToList();
+            if (criteria.Count == 0) return;
+
+            // Extract average scores: try "result.averageScores" (MCDA methods), fallback to "matrix.averageScores" (WeightedDeliberation)
+            JsonElement avgEl = default;
+            bool hasAvg = false;
+            if (root.TryGetProperty("result", out var resultEl) && resultEl.ValueKind == JsonValueKind.Object
+                && resultEl.TryGetProperty("averageScores", out avgEl))
+            {
+                hasAvg = true;
+            }
+            else if (root.TryGetProperty("matrix", out var matrixEl2) && matrixEl2.ValueKind == JsonValueKind.Object
+                     && matrixEl2.TryGetProperty("averageScores", out avgEl))
+            {
+                hasAvg = true;
+            }
+
+            var scores = new Dictionary<string, Dictionary<string, double>>();
+            foreach (var opt in options)
+            {
+                scores[opt] = new();
+                if (hasAvg && avgEl.TryGetProperty(opt, out var optScores))
+                    foreach (var c in criteria)
+                        if (optScores.TryGetProperty(c.Name, out var sv))
+                            scores[opt][c.Name] = sv.GetDouble();
+                // Fill missing scores with a neutral default
+                foreach (var c in criteria)
+                    if (!scores[opt].ContainsKey(c.Name))
+                        scores[opt][c.Name] = DefaultNeutralScore;
+            }
+
+            _mcdaBridge = new McdaBridgeState
+            {
+                McdaMethod = McdaMethodSlug(_council.SelectedMethod),
+                Options = options,
+                Criteria = criteria,
+                Scores = scores
+            };
+        }
+        catch { }
+    }
+
+    private void SetMcdaMethod(string? val)
+    {
+        if (_mcdaBridge is null || val is null) return;
+        _mcdaBridge.McdaMethod = val;
+    }
+
+    private void SetMcdaCriterionWeight(int idx, string? raw)
+    {
+        if (_mcdaBridge is null) return;
+        if (double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var w))
+            _mcdaBridge.Criteria[idx].Weight = w;
+    }
+
+    private double GetBridgeScore(string opt, string crit)
+    {
+        if (_mcdaBridge?.Scores.TryGetValue(opt, out var row) == true && row.TryGetValue(crit, out var v))
+            return v;
+        return DefaultNeutralScore;
+    }
+
+    private void SetBridgeScore(string opt, string crit, string? raw)
+    {
+        if (_mcdaBridge is null) return;
+        if (!double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                             System.Globalization.CultureInfo.InvariantCulture, out var v)) return;
+        if (!_mcdaBridge.Scores.ContainsKey(opt))
+            _mcdaBridge.Scores[opt] = new();
+        _mcdaBridge.Scores[opt][crit] = v;
+    }
+
+    private async Task RunMcda()
+    {
+        if (_mcdaBridge is null) return;
+        _mcdaError = null;
+        _mcdaResult = null;
+
+        var input = new McdaInputModel
+        {
+            Options = _mcdaBridge.Options.ToList(),
+            Criteria = _mcdaBridge.Criteria.Select(c => new McdaCriterionModel
+            {
+                Name = c.Name,
+                Weight = c.Weight,
+                IsBenefit = c.IsBenefit
+            }).ToList(),
+            Scores = _mcdaBridge.Options.ToDictionary(
+                o => o,
+                o => _mcdaBridge.Criteria.ToDictionary(
+                    c => c.Name,
+                    c => GetBridgeScore(o, c.Name)))
+        };
+
+        _mcdaRunning = true;
+        try
+        {
+            _mcdaResult = await Api.RunMcdaAsync(_mcdaBridge.McdaMethod, input);
+        }
+        catch (Exception ex)
+        {
+            _mcdaError = $"MCDA error: {ex.Message}";
+        }
+        finally
+        {
+            _mcdaRunning = false;
+        }
+    }
+
+    private class McdaBridgeState
+    {
+        public string McdaMethod { get; set; } = "topsis";
+        public List<string> Options { get; set; } = new();
+        public List<McdaCriterionModel> Criteria { get; set; } = new();
+        public Dictionary<string, Dictionary<string, double>> Scores { get; set; } = new();
     }
 }

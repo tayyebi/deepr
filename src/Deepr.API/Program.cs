@@ -58,6 +58,11 @@ builder.Services.AddScoped<IDecisionMethod, ConsensusMethod>();
 builder.Services.AddScoped<IDecisionMethod, NgtMethod>();
 builder.Services.AddScoped<IDecisionMethod, AdkarMethod>();
 builder.Services.AddScoped<IDecisionMethod, WeightedDeliberationMethod>();
+builder.Services.AddScoped<IDecisionMethod, AhpMethod>();
+builder.Services.AddScoped<IDecisionMethod, ElectreMethod>();
+builder.Services.AddScoped<IDecisionMethod, TopsisMethod>();
+builder.Services.AddScoped<IDecisionMethod, PrometheeMethod>();
+builder.Services.AddScoped<IDecisionMethod, GreyTheoryMethod>();
 
 // Add Tool Adapters
 builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();
@@ -72,6 +77,9 @@ builder.Services.AddScoped<ISessionOrchestrator, SessionOrchestratorService>();
 
 // Add Session Export Service
 builder.Services.AddScoped<ISessionExportService, SessionExportService>();
+
+// Add standalone MCDA service (no AI or database required)
+builder.Services.AddScoped<IMcdaService, McdaService>();
 
 // Add health check
 builder.Services.AddHealthChecks();
