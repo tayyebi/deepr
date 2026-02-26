@@ -78,6 +78,9 @@ builder.Services.AddScoped<ISessionOrchestrator, SessionOrchestratorService>();
 // Add Session Export Service
 builder.Services.AddScoped<ISessionExportService, SessionExportService>();
 
+// Add standalone MCDA service (no AI or database required)
+builder.Services.AddScoped<IMcdaService, McdaService>();
+
 // Add health check
 builder.Services.AddHealthChecks();
 
