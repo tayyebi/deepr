@@ -4,6 +4,14 @@
 
 ## Screenshots
 
+### Web Client — Template Gallery
+
+![Template Gallery](https://github.com/user-attachments/assets/2233476f-5b8c-481e-a0db-0e0412194464)
+
+### Web Client — New Issue pre-filled from Template
+
+![New Issue pre-filled from template](https://github.com/user-attachments/assets/8494e241-4169-46f4-b66c-f6a84c09a09a)
+
 ### Web Client — Dashboard
 
 ![Dashboard](https://github.com/user-attachments/assets/41b17dce-c0b9-4f3f-84c2-1ca1ff7c172b)
@@ -150,15 +158,37 @@ The database is migrated automatically on API startup.
 ### The Decision-Making Workflow
 
 ```
-Issue → Council → Session → Rounds → Finalize
+Templates → Issue → Council → Session → Rounds → Finalize
 ```
 
-1. **Create an Issue** — define the problem to be decided
-2. **Create a Council** — choose a decision method and analytical tool
-3. **Add Members** — assign AI or human agents to the council
-4. **Start a Session** — initialise the session with context
-5. **Execute Rounds** — agents deliberate and contribute
-6. **Finalize** — aggregate results and get the final outcome
+1. **Choose a Template** — pick a pre-built starting point or start blank
+2. **Create an Issue** — define the problem to be decided
+3. **Create a Council** — choose a decision method and analytical tool
+4. **Add Members** — assign AI or human agents to the council
+5. **Start a Session** — initialise the session with context
+6. **Execute Rounds** — agents deliberate and contribute
+7. **Finalize** — aggregate results and get the final outcome
+
+---
+
+### Step 0 — Choose a Template
+
+Navigate to **New Issue** in the sidebar (or click `+ New Issue` on the dashboard). You will be taken to the **Template Gallery** — a curated collection of 21 ready-to-use decision templates organised by category:
+
+| Category | Templates |
+|---|---|
+| Blank | ✏️ Blank Issue — start fresh |
+| Technology | 🏗️ Microservices vs Monolith, ☁️ Cloud Migration, ⚙️ Tech Stack Selection, 🔧 DevOps Toolchain, 🌐 Open-Source Strategy, 🤖 AI Adoption |
+| HR & Organisation | 🏠 Remote/Hybrid Work Policy, 💰 Compensation Framework, 🏢 Team Restructuring, 📊 Performance Review |
+| Product & Business | 📋 Feature Prioritisation, 🚀 Go-to-Market Strategy, 🏷️ Pricing Model Change, 🤝 Partnership Evaluation |
+| Finance | 💼 Budget Allocation, 📈 Strategic Investment |
+| Procurement | 🛒 Vendor Selection |
+| Risk | ⚠️ Risk Assessment |
+| Operations | 🏬 Office Space Decision |
+| Sustainability | 🌱 ESG Initiatives |
+| Compliance | 🔒 Data Privacy Policy |
+
+Selecting a template pre-fills the **Title** and **Context** fields so you can start immediately, or refine them before creating the issue. Selecting **Blank Issue** opens an empty form.
 
 ---
 

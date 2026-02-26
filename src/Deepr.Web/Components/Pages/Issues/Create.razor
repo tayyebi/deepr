@@ -5,6 +5,14 @@
 
 <PageTitle>New Issue — Deepr</PageTitle>
 
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="/issues/templates">Templates</a></li>
+        <li class="breadcrumb-item active">New Issue</li>
+    </ol>
+</nav>
+
 <h1>New Issue</h1>
 <p class="text-muted">Define the problem or decision that needs to be addressed.</p>
 <hr />
@@ -34,16 +42,34 @@
                 <button type="submit" class="btn btn-primary" disabled="@_saving">
                     @(_saving ? "Creating..." : "Create Issue")
                 </button>
-                <a href="/" class="btn btn-outline-secondary">Cancel</a>
+                <a href="/issues/templates" class="btn btn-outline-secondary">← Back to Templates</a>
             </div>
         </EditForm>
     </div>
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "title")]
+    public string? PrefilledTitle { get; set; }
+
+    [SupplyParameterFromQuery(Name = "context")]
+    public string? PrefilledContext { get; set; }
+
     private readonly IssueForm _form = new();
     private bool _saving;
     private string? _error;
+
+    private bool _parametersApplied;
+
+    protected override void OnParametersSet()
+    {
+        if (_parametersApplied) return;
+        _parametersApplied = true;
+        if (!string.IsNullOrEmpty(PrefilledTitle))
+            _form.Title = PrefilledTitle;
+        if (!string.IsNullOrEmpty(PrefilledContext))
+            _form.ContextVector = PrefilledContext;
+    }
 
     private async Task HandleSubmit()
     {

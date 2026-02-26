@@ -1,0 +1,80 @@
+@page "/issues/templates"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@using Deepr.Web.Models
+
+<PageTitle>Choose a Template — Deepr</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+        <h1>Choose a Template</h1>
+        <p class="text-muted mb-0">Select a starting point for your decision issue, or start from scratch.</p>
+    </div>
+    <a href="/" class="btn btn-outline-secondary">← Back to Dashboard</a>
+</div>
+<hr />
+
+@{
+    var categories = IssueTemplates.All
+        .GroupBy(t => t.Category)
+        .OrderBy(g => g.Key == "Blank" ? "0" : g.Key)
+        .ToList();
+}
+
+@foreach (var group in categories)
+{
+    <h5 class="mt-4 mb-3 text-muted text-uppercase" style="font-size:0.8rem;letter-spacing:0.07em;">@group.Key</h5>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-2">
+        @foreach (var template in group)
+        {
+            <div class="col">
+                <div class="card h-100 template-card @(template.Id == "blank" ? "border-dashed" : "")"
+                     style="cursor:pointer;"
+                     @onclick="() => SelectTemplate(template)">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                            <span style="font-size:1.6rem;line-height:1;">@template.Icon</span>
+                            <div>
+                                <h6 class="card-title mb-1">
+                                    @(string.IsNullOrEmpty(template.Title) ? "Blank Issue" : template.Title)
+                                </h6>
+                                <span class="badge bg-light text-secondary border small">@template.Category</span>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted small mb-0">@template.Description</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0 pt-0">
+                        <button class="btn btn-sm @(template.Id == "blank" ? "btn-outline-primary" : "btn-primary") w-100"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => SelectTemplate(template)">
+                            @(template.Id == "blank" ? "Start Blank" : "Use Template →")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .template-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .template-card {
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>
+
+@code {
+    private void SelectTemplate(IssueTemplate template)
+    {
+        var title = Uri.EscapeDataString(template.Title);
+        var context = Uri.EscapeDataString(template.ContextVector);
+        Nav.NavigateTo($"/issues/create?title={title}&context={context}");
+    }
+}
