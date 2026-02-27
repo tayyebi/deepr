@@ -3,6 +3,7 @@
 @inject DeeprApiClient Api
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@using Deepr.Web.Models
 
 <PageTitle>Council — Deepr</PageTitle>
 
@@ -107,6 +108,48 @@ else
                         </li>
                     }
                 </ul>
+                @if (_suggestedAgents.Count > 0)
+                {
+                    <div class="card-body border-top pt-2 pb-1">
+                        <p class="small fw-semibold text-muted mb-2">✨ Template suggestions — click to add:</p>
+                        @foreach (var suggested in _suggestedAgents)
+                        {
+                            var alreadyAdded = _council.Agents.Any(a => a.Name == suggested.Name);
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <div class="small">
+                                    <span class="badge @RoleBadgeClass(suggested.Role) me-1">@RoleName(suggested.Role)</span>
+                                    <span>@suggested.Name</span>
+                                    @if (!string.IsNullOrWhiteSpace(suggested.SystemPromptOverride))
+                                    {
+                                        <span class="badge bg-light text-secondary border ms-1" title="@suggested.SystemPromptOverride">🧠</span>
+                                    }
+                                    <span class="ms-1 text-muted">@(suggested.IsAi ? "🤖" : "👤")</span>
+                                    @if (!string.IsNullOrEmpty(suggested.ModelHint))
+                                    {
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle ms-1" style="font-size:.65rem;" title="Preferred AI model">⚡ @suggested.ModelHint</span>
+                                    }
+                                    @if (suggested.MaxTokens.HasValue)
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1" style="font-size:.65rem;" title="Max tokens">🔢 @suggested.MaxTokens</span>
+                                    }
+                                    @if (suggested.KnowledgeDocuments.Count > 0)
+                                    {
+                                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle ms-1"
+                                              style="font-size:.65rem;"
+                                              title="@string.Join("\n", suggested.KnowledgeDocuments.Select(d => d.FileName))">
+                                            📄 @suggested.KnowledgeDocuments.Count doc(s)
+                                        </span>
+                                    }
+                                </div>
+                                <button class="btn btn-sm @(alreadyAdded ? "btn-outline-secondary" : "btn-outline-primary") py-0"
+                                        disabled="@(alreadyAdded || _savingMember)"
+                                        @onclick="() => AddSuggestedMember(suggested)">
+                                    @(alreadyAdded ? "✓" : "+ Add")
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
 
@@ -476,6 +519,9 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
 
+    [SupplyParameterFromQuery(Name = "templateId")]
+    public string? TemplateId { get; set; }
+
     private CouncilDto? _council;
     private SessionDto? _session;
     private List<SessionRoundDto> _rounds = new();
@@ -487,6 +533,9 @@ else
     private bool _savingMember;
     private string? _memberError;
     private MemberForm _memberForm = new();
+
+    private List<TemplateAgent> _suggestedAgents = new();
+    private string? _appliedTemplateId = "~unset~";
 
     private bool _startingSession;
     private string? _sessionError;
@@ -520,6 +569,49 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_appliedTemplateId == TemplateId) return;
+        _appliedTemplateId = TemplateId;
+
+        if (!string.IsNullOrEmpty(TemplateId))
+        {
+            var template = IssueTemplates.FindById(TemplateId);
+            if (template is not null && template.RecommendedAgents.Count > 0)
+                _suggestedAgents = template.RecommendedAgents.ToList();
+        }
+    }
+
+    private async Task AddSuggestedMember(TemplateAgent agent)
+    {
+        if (_savingMember) return;
+        _savingMember = true;
+        _memberError = null;
+        try
+        {
+            var agentId = Guid.NewGuid();
+            // Append any knowledge documents to the system prompt so they are persisted with the agent
+            var prompt = agent.SystemPromptOverride;
+            if (agent.KnowledgeDocuments.Count > 0)
+            {
+                var docs = string.Join("\n\n", agent.KnowledgeDocuments.Select(d =>
+                    $"--- {d.FileName} ---\n{d.Content}"));
+                prompt = string.IsNullOrEmpty(prompt)
+                    ? docs
+                    : $"{prompt}\n\n## Knowledge Base\n{docs}";
+            }
+            _council = await Api.AddMemberAsync(Id, agentId, agent.Name, agent.Role, agent.IsAi, prompt);
+        }
+        catch (Exception ex)
+        {
+            _memberError = ex.Message;
+        }
+        finally
+        {
+            _savingMember = false;
         }
     }
 
@@ -640,6 +732,8 @@ else
         0 => "Delphi", 1 => "NGT", 2 => "Brainstorming", 4 => "Consensus",
         5 => "ADKAR", 6 => "Weighted Deliberation",
         7 => "AHP", 8 => "ELECTRE", 9 => "TOPSIS", 10 => "PROMETHEE II", 11 => "Grey Theory",
+        12 => "Majority Voting", 13 => "Six Thinking Hats",
+        14 => "Cost–Benefit Analysis", 15 => "RAPID", 16 => "OODA Loop",
         _ => $"Method {m}"
     };
     private static string ToolName(int t) => t switch { 0 => "SWOT", 2 => "Weighted Scoring", 5 => "PESTLE", _ => $"Tool {t}" };

@@ -4,6 +4,22 @@
 
 ## Screenshots
 
+### Web Client — Template Gallery (with method, tool & agent badges)
+
+![Template Gallery](https://github.com/user-attachments/assets/b6e3aa8a-3ac7-4e77-9eff-21017e23e37a)
+
+### Web Client — New Issue pre-filled from Template (with recommendation banner)
+
+![New Issue pre-filled from template](https://github.com/user-attachments/assets/5830812e-ac0b-4329-8de2-e469adde084a)
+
+### Web Client — Issue Detail with template-suggested council form (method + tool pre-selected)
+
+![Issue Detail — template council form pre-filled](https://github.com/user-attachments/assets/c5a711ab-6463-4127-81bb-9d5ae71a3d5a)
+
+### Web Client — Council Detail with suggested agents (one-click add, shows ✓ when added)
+
+![Council Detail — suggested agents added](https://github.com/user-attachments/assets/de4afa7c-9611-4bf3-8f46-03d5a48b2b78)
+
 ### Web Client — Dashboard
 
 ![Dashboard](https://github.com/user-attachments/assets/41b17dce-c0b9-4f3f-84c2-1ca1ff7c172b)
@@ -150,15 +166,37 @@ The database is migrated automatically on API startup.
 ### The Decision-Making Workflow
 
 ```
-Issue → Council → Session → Rounds → Finalize
+Templates → Issue → Council → Session → Rounds → Finalize
 ```
 
-1. **Create an Issue** — define the problem to be decided
-2. **Create a Council** — choose a decision method and analytical tool
-3. **Add Members** — assign AI or human agents to the council
-4. **Start a Session** — initialise the session with context
-5. **Execute Rounds** — agents deliberate and contribute
-6. **Finalize** — aggregate results and get the final outcome
+1. **Choose a Template** — pick a pre-built starting point or start blank
+2. **Create an Issue** — define the problem to be decided
+3. **Create a Council** — choose a decision method and analytical tool
+4. **Add Members** — assign AI or human agents to the council
+5. **Start a Session** — initialise the session with context
+6. **Execute Rounds** — agents deliberate and contribute
+7. **Finalize** — aggregate results and get the final outcome
+
+---
+
+### Step 0 — Choose a Template
+
+Navigate to **New Issue** in the sidebar (or click `+ New Issue` on the dashboard). You will be taken to the **Template Gallery** — a curated collection of 21 ready-to-use decision templates organised by category:
+
+| Category | Templates |
+|---|---|
+| Blank | ✏️ Blank Issue — start fresh |
+| Technology | 🏗️ Microservices vs Monolith, ☁️ Cloud Migration, ⚙️ Tech Stack Selection, 🔧 DevOps Toolchain, 🌐 Open-Source Strategy, 🤖 AI Adoption |
+| HR & Organisation | 🏠 Remote/Hybrid Work Policy, 💰 Compensation Framework, 🏢 Team Restructuring, 📊 Performance Review |
+| Product & Business | 📋 Feature Prioritisation, 🚀 Go-to-Market Strategy, 🏷️ Pricing Model Change, 🤝 Partnership Evaluation |
+| Finance | 💼 Budget Allocation, 📈 Strategic Investment |
+| Procurement | 🛒 Vendor Selection |
+| Risk | ⚠️ Risk Assessment |
+| Operations | 🏬 Office Space Decision |
+| Sustainability | 🌱 ESG Initiatives |
+| Compliance | 🔒 Data Privacy Policy |
+
+Selecting a template pre-fills the **Title** and **Context** fields so you can start immediately, or refine them before creating the issue. Selecting **Blank Issue** opens an empty form.
 
 ---
 

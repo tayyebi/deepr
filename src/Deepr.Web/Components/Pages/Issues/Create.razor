@@ -2,12 +2,37 @@
 @rendermode InteractiveServer
 @inject DeeprApiClient Api
 @inject NavigationManager Nav
+@using Deepr.Web.Models
 
 <PageTitle>New Issue — Deepr</PageTitle>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="/issues/templates">Templates</a></li>
+        <li class="breadcrumb-item active">New Issue</li>
+    </ol>
+</nav>
 
 <h1>New Issue</h1>
 <p class="text-muted">Define the problem or decision that needs to be addressed.</p>
 <hr />
+
+@if (_template is not null && _template.Id != "blank")
+{
+    <div class="alert alert-primary d-flex align-items-center gap-2 mb-3 py-2">
+        <span style="font-size:1.3rem;">@_template.Icon</span>
+        <div class="small">
+            <strong>Template:</strong> @_template.Description
+            <span class="ms-2 badge bg-primary">@IssueTemplates.MethodName(_template.RecommendedMethod)</span>
+            <span class="ms-1 badge bg-secondary">@IssueTemplates.ToolName(_template.RecommendedTool)</span>
+            @if (_template.RecommendedAgents.Count > 0)
+            {
+                <span class="ms-1 badge bg-success">@_template.RecommendedAgents.Count agents</span>
+            }
+        </div>
+    </div>
+}
 
 <div class="row">
     <div class="col-md-8">
@@ -34,16 +59,37 @@
                 <button type="submit" class="btn btn-primary" disabled="@_saving">
                     @(_saving ? "Creating..." : "Create Issue")
                 </button>
-                <a href="/" class="btn btn-outline-secondary">Cancel</a>
+                <a href="/issues/templates" class="btn btn-outline-secondary">← Back to Templates</a>
             </div>
         </EditForm>
     </div>
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "templateId")]
+    public string? TemplateId { get; set; }
+
+    private IssueTemplate? _template;
     private readonly IssueForm _form = new();
     private bool _saving;
     private string? _error;
+    private string? _appliedTemplateId = "~unset~";
+
+    protected override void OnParametersSet()
+    {
+        if (_appliedTemplateId == TemplateId) return;
+        _appliedTemplateId = TemplateId;
+
+        if (!string.IsNullOrEmpty(TemplateId))
+        {
+            _template = IssueTemplates.FindById(TemplateId);
+            if (_template is not null)
+            {
+                _form.Title = _template.Title;
+                _form.ContextVector = _template.ContextVector;
+            }
+        }
+    }
 
     private async Task HandleSubmit()
     {
@@ -54,7 +100,12 @@
             var ownerId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             var issue = await Api.CreateIssueAsync(_form.Title, _form.ContextVector, ownerId);
             if (issue is not null)
-                Nav.NavigateTo($"/issues/{issue.Id}");
+            {
+                var dest = string.IsNullOrEmpty(TemplateId)
+                    ? $"/issues/{issue.Id}"
+                    : $"/issues/{issue.Id}?templateId={Uri.EscapeDataString(TemplateId)}";
+                Nav.NavigateTo(dest);
+            }
         }
         catch (Exception ex)
         {
@@ -74,3 +125,4 @@
         public string ContextVector { get; set; } = string.Empty;
     }
 }
+

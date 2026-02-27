@@ -7,7 +7,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>🧠 Decision Issues</h1>
-    <a href="issues/create" class="btn btn-primary">+ New Issue</a>
+    <a href="issues/templates" class="btn btn-primary">+ New Issue</a>
 </div>
 
 @if (_loading)
@@ -17,7 +17,7 @@
 else if (_issues is null || !_issues.Any())
 {
     <div class="alert alert-info">
-        No issues yet. <a href="issues/create">Create your first issue</a> to get started.
+        No issues yet. <a href="issues/templates">Create your first issue</a> to get started.
     </div>
 }
 else
