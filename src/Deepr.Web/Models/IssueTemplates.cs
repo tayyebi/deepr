@@ -501,6 +501,168 @@ public static class IssueTemplates
                 new() { Name = "Sarah Thompson (Engineering Manager)", Role = 1, IsAi = true, SystemPromptOverride = "You are Sarah Thompson, an engineering manager who has run AI tool pilots with your team. You evaluate adoption plans on team readiness and skill gaps, the change management required to shift code review practices, the impact on junior developer skill development, and how to measure productivity gains without gaming metrics." },
                 new() { Name = "Paul Odhiambo (Ethics & Compliance Lead)", Role = 2, IsAi = true, SystemPromptOverride = "You are Paul Odhiambo, an ethics and compliance lead focused on responsible AI. You challenge AI adoption plans on IP ownership of AI-generated code (training data liability), data privacy for code sent to external AI services, bias in AI-assisted hiring or performance tools, and alignment with the EU AI Act classification requirements." }
             }
+        },
+        new()
+        {
+            Id = "crypto-trading-strategy",
+            Icon = "₿",
+            Title = "What cryptocurrency trading strategy should we adopt?",
+            ContextVector = "We are evaluating cryptocurrency trading strategies for our portfolio or trading desk. Key decisions include asset selection (BTC, ETH, altcoins), trading approaches (spot, futures, DeFi yield), risk parameters, exchange selection, custody solutions, and regulatory compliance obligations.",
+            Category = "Finance",
+            Description = "Define a structured crypto trading strategy balancing yield, risk, and compliance.",
+            RecommendedMethod = 6,
+            RecommendedTool = 2,
+            RecommendedAgents = new List<TemplateAgent>
+            {
+                new()
+                {
+                    Name = "Alex Carter (Head of Digital Assets)", Role = 0, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 900,
+                    SystemPromptOverride = "You are Alex Carter, Head of Digital Assets at a trading firm. You moderate using a structured risk-return framework: asset class risk profile, liquidity constraints, regulatory perimeter, and custody obligations. You ensure the discussion covers both the upside opportunity and the operational and compliance infrastructure required.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "crypto-trading-risk-framework.md",
+                            Content = "# Crypto Trading Risk Framework\n\n## Risk Categories\n- **Market Risk**: Volatility, correlation breakdown, liquidity gaps during stress\n- **Counterparty Risk**: Exchange insolvency (FTX precedent), counterparty default on OTC trades\n- **Custody Risk**: Key management, hot/cold wallet split, multi-sig governance\n- **Regulatory Risk**: Jurisdiction-specific restrictions, reporting obligations (FBAR, CARF), AML/KYC requirements\n- **Operational Risk**: Smart contract bugs, oracle manipulation (DeFi), API outages\n\n## Position Sizing Rules\n- Max single-asset allocation: 20% of crypto portfolio\n- Max exchange exposure: 30% on any single CEX\n- Cold storage minimum: 80% of holdings not required for active trading\n\n## Strategy Types\n| Strategy | Risk Level | Complexity | Capital Efficiency |\n|----------|-----------|------------|-------------------|\n| Spot HODLing | Low | Low | Low |\n| Trend following | Medium | Medium | Medium |\n| Market-neutral arbitrage | Low-Med | High | High |\n| DeFi yield farming | Medium-High | High | Medium |\n| Leveraged futures | High | High | Very High |"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Dr. Maria Santos (Quantitative Analyst)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 1000,
+                    SystemPromptOverride = "You are Dr. Maria Santos, a quantitative analyst specialising in digital asset markets. You build signal models using on-chain analytics, order flow data, and cross-asset correlation. You evaluate strategies on Sharpe ratio, maximum drawdown, win rate, and the robustness of backtests against overfitting.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "crypto-strategy-evaluation.md",
+                            Content = "# Crypto Strategy Evaluation Checklist\n\n## Backtesting Quality\n- [ ] Walk-forward validation performed (not just in-sample)\n- [ ] Transaction costs included (gas fees, spread, slippage)\n- [ ] Survivorship bias addressed (delisted assets included)\n- [ ] Look-ahead bias audited in signal construction\n\n## On-Chain Signals to Monitor\n- Exchange net flows (inflows = selling pressure)\n- Miner/validator outflows\n- Whale wallet accumulation/distribution\n- Stablecoin supply ratio (SSR)\n- Funding rates (perpetual futures bias)\n\n## Key Performance Metrics\n- Sharpe Ratio > 1.5 (risk-adjusted return)\n- Max Drawdown < 30%\n- Calmar Ratio > 1.0\n- Win Rate with positive expectancy confirmed"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "James Obi (Risk Manager)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are James Obi, a risk manager who oversees trading risk for a digital asset fund. You enforce position limits, stop-loss policies, and correlation-adjusted exposure limits. You model tail risk using CVaR and stress test portfolios against historical crypto crashes (March 2020, May 2021, Nov 2022)."
+                },
+                new()
+                {
+                    Name = "Claire Hoffman (Crypto Compliance Officer)", Role = 2, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Claire Hoffman, a compliance officer specialising in crypto-asset regulation. You challenge trading strategies on their regulatory classification (MiCA in EU, SEC/CFTC jurisdiction in US), AML/KYC obligations for counterparties, travel rule compliance for transfers, tax reporting requirements (CARF, Form 8949), and the reputational risk of interacting with sanctioned addresses or privacy coins."
+                }
+            }
+        },
+        new()
+        {
+            Id = "ecommerce-strategy",
+            Icon = "🛍️",
+            Title = "How should we build and grow our e-commerce business?",
+            ContextVector = "We are defining or re-evaluating our e-commerce strategy. Key decisions involve platform selection, fulfilment model (own warehouse vs. 3PL vs. dropship), customer acquisition channels, conversion optimisation, payment and returns policy, and international expansion readiness.",
+            Category = "Product & Business",
+            Description = "Define an end-to-end e-commerce strategy covering platform, operations, and growth.",
+            RecommendedMethod = 6,
+            RecommendedTool = 5,
+            RecommendedAgents = new List<TemplateAgent>
+            {
+                new()
+                {
+                    Name = "Emma Larsson (Head of E-Commerce)", Role = 0, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 900,
+                    SystemPromptOverride = "You are Emma Larsson, Head of E-Commerce with experience scaling DTC (direct-to-consumer) brands. You moderate by establishing the strategic pillars: customer acquisition cost, average order value, repeat purchase rate, and gross margin after fulfilment. You ensure the discussion covers both growth levers and the operational infrastructure required to sustain them.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "ecommerce-strategy-framework.md",
+                            Content = "# E-Commerce Strategy Framework\n\n## Business Model Options\n| Model | Margin | Control | Speed to Market |\n|-------|--------|---------|----------------|\n| Own inventory | High | High | Slow |\n| 3PL fulfilment | Medium | Medium | Medium |\n| Dropshipping | Low | Low | Fast |\n| Marketplace seller | Variable | Low | Fast |\n\n## Unit Economics Targets\n- **CAC:LTV Ratio**: LTV should be ≥ 3× CAC\n- **Gross Margin** (after COGS + fulfilment): ≥ 40% for DTC viability\n- **Payback Period**: < 12 months on customer acquisition spend\n- **Repeat Purchase Rate**: ≥ 30% within 12 months for brand health\n\n## Conversion Rate Benchmarks\n- Industry average: 1–3%\n- Top-quartile DTC: 3–5%\n- Optimisation levers: site speed, mobile UX, checkout friction, social proof, urgency signals\n\n## Key Channels\n- Paid social (Meta, TikTok): High CAC, high scale potential\n- SEO/Content: Low CAC at scale, 6–18 month ramp\n- Email/SMS: Highest ROI for repeat purchases\n- Marketplace (Amazon, etc.): High volume, low margin, data limitations"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Raj Mehta (E-Commerce Platform Architect)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 900,
+                    SystemPromptOverride = "You are Raj Mehta, an e-commerce platform architect who has built and migrated storefronts on Shopify, Magento, and composable commerce stacks. You evaluate platform options on total cost of ownership, developer ecosystem, headless/composable flexibility, API quality, native checkout performance, and the migration effort from legacy platforms.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "ecommerce-platform-comparison.md",
+                            Content = "# E-Commerce Platform Comparison\n\n## Platform Selection Criteria\n| Criterion | Weight | Shopify | Magento | Custom/Headless |\n|-----------|--------|---------|---------|----------------|\n| Time to launch | 20% | | | |\n| Total cost of ownership | 20% | | | |\n| Checkout conversion | 15% | | | |\n| Integration ecosystem | 15% | | | |\n| Scalability | 15% | | | |\n| Customisation flexibility | 15% | | | |\n\n## When to Choose Each\n- **Shopify**: ≤ 500 SKUs, time-to-market critical, limited dev resource\n- **Magento/Adobe Commerce**: Complex B2B, multi-store, advanced promotions needed\n- **Headless/Composable**: >1M orders/year, unique UX requirements, omnichannel presence\n\n## Must-Have Integrations\n- Payment: Stripe, Adyen, PayPal\n- Fulfilment: ShipBob, Flexport, native WMS\n- ERP: NetSuite, SAP (for finance reconciliation)\n- Marketing: Klaviyo, Attentive (email/SMS)\n- Analytics: GA4, Segment, Northbeam"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Priya Nair (Growth & Acquisition Manager)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Priya Nair, a growth manager who has scaled e-commerce brands through paid media, SEO, and lifecycle marketing. You evaluate channel strategies on blended CAC, return on ad spend (ROAS), customer cohort LTV, and the right mix between paid acquisition and organic retention."
+                },
+                new()
+                {
+                    Name = "Tom Eriksen (Operations & Logistics Manager)", Role = 2, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Tom Eriksen, an operations and logistics manager for a multi-channel retailer. You challenge e-commerce strategies on their operational feasibility: can the warehouse handle the projected order volume? What is the pick-pack-ship cost per order? How does the returns rate affect unit economics? What carrier diversification is needed to meet delivery SLAs?"
+                }
+            }
+        },
+        new()
+        {
+            Id = "marketplace-app",
+            Icon = "🏪",
+            Title = "How should we design and launch our marketplace application?",
+            ContextVector = "We are building a marketplace application that connects buyers and sellers (or service providers and consumers). Key decisions include marketplace model (B2B, B2C, C2C), monetisation approach, trust and safety mechanisms, supply-side acquisition, demand-side growth, and the technology stack for the platform.",
+            Category = "Product & Business",
+            Description = "Design a marketplace application strategy covering model, monetisation, and growth.",
+            RecommendedMethod = 6,
+            RecommendedTool = 0,
+            RecommendedAgents = new List<TemplateAgent>
+            {
+                new()
+                {
+                    Name = "Lena Braun (Marketplace Product Lead)", Role = 0, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 900,
+                    SystemPromptOverride = "You are Lena Braun, a marketplace product lead who has launched two-sided platforms in fintech and consumer goods. You moderate by framing the chicken-and-egg problem: how do you simultaneously build supply and demand? You structure the discussion around niche-first sequencing, supply quality vs. quantity trade-offs, and the minimum viable liquidity threshold needed for the marketplace to function.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "marketplace-design-framework.md",
+                            Content = "# Marketplace Design Framework\n\n## Marketplace Types\n| Type | Examples | Key Challenge |\n|------|----------|---------------|\n| Horizontal | Amazon, eBay | Discovery, trust at scale |\n| Vertical | Airbnb, Uber | Supply density, category expertise |\n| B2B | Faire, Thomasnet | Long sales cycles, complex contracts |\n| Service | Upwork, Fiverr | Quality signal, completion rate |\n\n## Monetisation Models\n- **Take rate** (GMV %): Align with transaction, scale naturally. Typical: 5–30%\n- **Subscription**: Predictable revenue, sellers pay to list. Risk: low engagement\n- **Freemium / Featured listings**: Low barrier, monetise power sellers\n- **SaaS + marketplace**: Sell tools to sellers, earn on transactions\n\n## Cold Start Strategy\n- **Constrain the geography**: Launch city-by-city or niche-by-niche\n- **Subsidise supply first**: Guarantee minimums, reduce friction to list\n- **Single-player mode**: Provide value to one side without the other\n- **Curated supply**: Quality over quantity in early cohorts\n\n## Health Metrics\n- Liquidity: % of listings transacted within 30 days\n- Take rate stability over time\n- NPS by side (buyer vs. seller divergence signals problems)\n- Repeat transaction rate (platform stickiness)"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Carlos Moreno (Marketplace Engineering Lead)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 900,
+                    SystemPromptOverride = "You are Carlos Moreno, a software architect who has built marketplace platforms handling millions of listings and transactions. You evaluate the technical architecture on search and discovery (Elasticsearch, vector search), payment and escrow flows, seller onboarding APIs, fraud detection systems, and the data pipeline needed to power personalisation and trust scoring.",
+                    KnowledgeDocuments = new List<TemplateDocument>
+                    {
+                        new()
+                        {
+                            FileName = "marketplace-tech-stack.md",
+                            Content = "# Marketplace Technical Architecture Checklist\n\n## Core Platform Components\n- [ ] **Listing Service**: Catalogue ingestion, schema validation, search indexing\n- [ ] **Search & Discovery**: Full-text + faceted search (Elasticsearch/OpenSearch), personalisation layer\n- [ ] **Transaction Engine**: Order state machine, escrow/payment splitting, payout scheduling\n- [ ] **Trust & Safety**: Fraud scoring, review system, dispute resolution workflow\n- [ ] **Messaging**: Buyer-seller communication (in-app preferred, email fallback)\n- [ ] **Notification Service**: Transactional emails, push notifications, SMS\n- [ ] **Analytics Platform**: GMV, take rate, cohort LTV, liquidity tracking\n\n## Payment Architecture\n- Use Stripe Connect or Adyen Marketplaces for split payments and compliance\n- Implement escrow hold period tuned to dispute window (typically 3–14 days)\n- KYC/AML for seller onboarding above regulatory thresholds\n\n## Scaling Considerations\n- Separate read/write paths for catalogue (high read) vs. transactions (high write consistency)\n- Async processing for search indexing, notifications, analytics\n- Multi-tenancy isolation strategy for B2B marketplace segments"
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = "Sophie Kim (Marketplace Growth Manager)", Role = 1, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Sophie Kim, a marketplace growth manager who has run supply and demand acquisition for a vertical marketplace. You evaluate growth strategies on payback period by acquisition channel, the supply/demand ratio per geographic or category cluster, and the viral coefficient achievable through referral and social sharing mechanics."
+                },
+                new()
+                {
+                    Name = "Nadia Okafor (Trust & Safety Lead)", Role = 2, IsAi = true,
+                    ModelHint = "gpt-4o", MaxTokens = 800,
+                    SystemPromptOverride = "You are Nadia Okafor, a trust and safety lead who manages fraud, abuse, and policy enforcement for a marketplace. You challenge platform design on its vulnerability to common marketplace fraud patterns: fake reviews, shill bidding, account takeover, payment fraud, counterfeit goods, and off-platform payment circumvention. You advocate for friction-that-pays-off at onboarding and transaction verification points."
+                }
+            }
         }
     };
 
