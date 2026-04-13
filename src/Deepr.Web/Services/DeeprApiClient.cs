@@ -37,13 +37,18 @@ public class DeeprApiClient
         return await response.Content.ReadFromJsonAsync<CouncilDto>();
     }
 
-    public async Task<CouncilDto?> AddMemberAsync(Guid councilId, Guid agentId, string name, int role, bool isAi, string? systemPromptOverride = null)
+    public async Task<CouncilDto?> AddMemberAsync(Guid councilId, Guid agentId, string name, int role, bool isAi,
+        string? systemPromptOverride = null, string? modelProvider = null, string? modelId = null)
     {
         var response = await _http.PostAsJsonAsync($"api/councils/{councilId}/members",
-            new { agentId, name, role, isAi, systemPromptOverride });
+            new { agentId, name, role, isAi, systemPromptOverride, modelProvider, modelId });
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<CouncilDto>();
     }
+
+    // Providers
+    public Task<List<ProviderInfoDto>?> GetProvidersAsync() =>
+        _http.GetFromJsonAsync<List<ProviderInfoDto>>("api/providers");
 
     // Sessions
     public Task<SessionDto?> GetSessionAsync(Guid id) =>

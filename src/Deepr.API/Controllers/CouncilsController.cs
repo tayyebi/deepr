@@ -46,7 +46,8 @@ public class CouncilsController : ControllerBase
     {
         try
         {
-            var result = await _mediator.Send(new AddMemberCommand(id, request.AgentId, request.Name, request.Role, request.IsAi, request.SystemPromptOverride), cancellationToken);
+            var result = await _mediator.Send(new AddMemberCommand(id, request.AgentId, request.Name, request.Role, request.IsAi,
+                request.SystemPromptOverride, request.ModelProvider, request.ModelId), cancellationToken);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -57,4 +58,5 @@ public class CouncilsController : ControllerBase
 }
 
 public record CreateCouncilRequest(Guid IssueId, MethodType SelectedMethod, ToolType SelectedTool);
-public record AddMemberRequest(Guid AgentId, string Name, Role Role, bool IsAi, string? SystemPromptOverride = null);
+public record AddMemberRequest(Guid AgentId, string Name, Role Role, bool IsAi,
+    string? SystemPromptOverride = null, string? ModelProvider = null, string? ModelId = null);

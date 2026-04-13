@@ -1,6 +1,7 @@
 using Deepr.Application.Behaviors;
 using Deepr.Application.Interfaces;
 using Deepr.Infrastructure.AgentDrivers;
+using Deepr.Infrastructure.Configuration;
 using Deepr.Infrastructure.DecisionMethods;
 using Deepr.Infrastructure.Persistence;
 using Deepr.Infrastructure.Repositories;
@@ -74,8 +75,11 @@ builder.Services.AddScoped<IToolAdapter, SwotToolAdapter>();
 builder.Services.AddScoped<IToolAdapter, WeightedScoringAdapter>();
 builder.Services.AddScoped<IToolAdapter, PestleToolAdapter>();
 
-// Add Agent Driver (Echo driver as default; replace with SemanticKernelAgentDriver when OpenAI is configured)
-builder.Services.AddScoped<IAgentDriver, EchoAgentDriver>();
+// Add AI Provider Registry and Agent Driver Factory
+var aiProviders = builder.Configuration.GetSection("AiProviders").Get<List<AiProviderConfig>>()
+    ?? new List<AiProviderConfig>();
+builder.Services.AddSingleton(sp => new AiProviderRegistry(aiProviders, sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<IAgentDriverFactory, AgentDriverFactory>();
 
 // Add Session Orchestrator
 builder.Services.AddScoped<ISessionOrchestrator, SessionOrchestratorService>();

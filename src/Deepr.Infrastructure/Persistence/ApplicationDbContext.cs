@@ -67,6 +67,8 @@ public class ApplicationDbContext : DbContext
                 a.Property(m => m.Role).IsRequired();
                 a.Property(m => m.IsAi).IsRequired();
                 a.Property(m => m.SystemPromptOverride);
+                a.Property(m => m.ModelProvider).HasMaxLength(100);
+                a.Property(m => m.ModelId).HasMaxLength(200);
             });
         });
 

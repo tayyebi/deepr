@@ -28,6 +28,15 @@ public class CouncilMemberDto
     public int Role { get; set; }
     public bool IsAi { get; set; }
     public string? SystemPromptOverride { get; set; }
+    public string? ModelProvider { get; set; }
+    public string? ModelId { get; set; }
+}
+
+public class ProviderInfoDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string DefaultModel { get; set; } = string.Empty;
 }
 
 public class SessionDto

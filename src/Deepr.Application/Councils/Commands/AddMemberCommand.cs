@@ -7,7 +7,8 @@ using MediatR;
 
 namespace Deepr.Application.Councils.Commands;
 
-public record AddMemberCommand(Guid CouncilId, Guid AgentId, string Name, Role Role, bool IsAi, string? SystemPromptOverride = null) : IRequest<CouncilDto>;
+public record AddMemberCommand(Guid CouncilId, Guid AgentId, string Name, Role Role, bool IsAi,
+    string? SystemPromptOverride = null, string? ModelProvider = null, string? ModelId = null) : IRequest<CouncilDto>;
 
 public class AddMemberCommandHandler : IRequestHandler<AddMemberCommand, CouncilDto>
 {
@@ -23,7 +24,8 @@ public class AddMemberCommandHandler : IRequestHandler<AddMemberCommand, Council
         var council = await _repository.GetByIdAsync(request.CouncilId, cancellationToken)
             ?? throw new InvalidOperationException($"Council {request.CouncilId} not found");
 
-        var member = new CouncilMember(request.AgentId, request.Name, request.Role, request.IsAi, request.SystemPromptOverride);
+        var member = new CouncilMember(request.AgentId, request.Name, request.Role, request.IsAi,
+            request.SystemPromptOverride, request.ModelProvider, request.ModelId);
         council.AddMember(member);
         await _repository.UpdateAsync(council, cancellationToken);
 
@@ -39,7 +41,9 @@ public class AddMemberCommandHandler : IRequestHandler<AddMemberCommand, Council
                 Name = a.Name,
                 Role = a.Role,
                 IsAi = a.IsAi,
-                SystemPromptOverride = a.SystemPromptOverride
+                SystemPromptOverride = a.SystemPromptOverride,
+                ModelProvider = a.ModelProvider,
+                ModelId = a.ModelId
             }).ToList(),
             CreatedAt = council.CreatedAt
         };

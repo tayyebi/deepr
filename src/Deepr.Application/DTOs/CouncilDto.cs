@@ -19,4 +19,6 @@ public class CouncilMemberDto
     public Role Role { get; set; }
     public bool IsAi { get; set; }
     public string? SystemPromptOverride { get; set; }
+    public string? ModelProvider { get; set; }
+    public string? ModelId { get; set; }
 }

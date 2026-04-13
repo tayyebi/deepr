@@ -32,7 +32,9 @@ public class GetCouncilQueryHandler : IRequestHandler<GetCouncilQuery, CouncilDt
                 Name = a.Name,
                 Role = a.Role,
                 IsAi = a.IsAi,
-                SystemPromptOverride = a.SystemPromptOverride
+                SystemPromptOverride = a.SystemPromptOverride,
+                ModelProvider = a.ModelProvider,
+                ModelId = a.ModelId
             }).ToList(),
             CreatedAt = council.CreatedAt
         };

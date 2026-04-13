@@ -8,16 +8,16 @@ public class SessionOrchestratorService : ISessionOrchestrator
 {
     private readonly IEnumerable<IDecisionMethod> _decisionMethods;
     private readonly IEnumerable<IToolAdapter> _toolAdapters;
-    private readonly IAgentDriver _agentDriver;
+    private readonly IAgentDriverFactory _driverFactory;
 
     public SessionOrchestratorService(
         IEnumerable<IDecisionMethod> decisionMethods,
         IEnumerable<IToolAdapter> toolAdapters,
-        IAgentDriver agentDriver)
+        IAgentDriverFactory driverFactory)
     {
         _decisionMethods = decisionMethods;
         _toolAdapters = toolAdapters;
-        _agentDriver = agentDriver;
+        _driverFactory = driverFactory;
     }
 
     public async Task<Session> StartSessionAsync(Council council, Issue issue, CancellationToken cancellationToken = default)
@@ -52,10 +52,11 @@ public class SessionOrchestratorService : ISessionOrchestrator
 
         foreach (var agent in council.Agents.Where(a => a.Role != Role.Observer))
         {
-            if (!await _agentDriver.IsAgentAvailableAsync(agent.AgentId, cancellationToken))
+            var driver = _driverFactory.GetDriver(agent);
+            if (!await driver.IsAgentAvailableAsync(agent.AgentId, cancellationToken))
                 continue;
 
-            var rawResponse = await _agentDriver.GetResponseAsync(agent, fullPrompt, cancellationToken);
+            var rawResponse = await driver.GetResponseAsync(agent, fullPrompt, cancellationToken);
             var parsed = await toolAdapter.ParseResponseAsync(rawResponse, cancellationToken);
 
             var contribution = new Contribution(
